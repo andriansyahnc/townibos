@@ -38,6 +38,15 @@ export class RegulationsService {
     return this.model.find({}, { title: 1, content: 1, category: 1 }).exec();
   }
 
+  // Upsert a regulation synced from Notion — keyed on notionPageId
+  upsertByNotionPageId(notionPageId: string, dto: Partial<Regulation>) {
+    return this.model.findOneAndUpdate(
+      { notionPageId },
+      { $set: dto },
+      { upsert: true, new: true },
+    );
+  }
+
   // Store embedding for a regulation chunk (for vector similarity later)
   async saveEmbedding(id: string, embedding: number[]) {
     return this.model.findByIdAndUpdate(id, { embedding }, { new: true });

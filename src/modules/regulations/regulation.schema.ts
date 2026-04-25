@@ -14,6 +14,10 @@ export class Regulation {
   @Prop({ enum: ['tata_tertib', 'iuran', 'fasilitas', 'parkir', 'hewan', 'renovasi', 'lainnya'] })
   category: string;
 
+  // Notion page ID — set when synced from Notion; used as upsert key
+  @Prop({ sparse: true, unique: true })
+  notionPageId: string;
+
   // Stored embedding for semantic search
   @Prop({ type: [Number] })
   embedding: number[];

@@ -15,4 +15,8 @@ export default () => ({
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY,
   },
+  notion: {
+    apiKey: process.env.NOTION_API_KEY,
+    databaseId: process.env.NOTION_DATABASE_ID,
+  },
 });

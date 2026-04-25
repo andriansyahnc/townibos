@@ -11,6 +11,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { RegulationsModule } from './modules/regulations/regulations.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { RagModule } from './modules/rag/rag.module';
+import { NotionModule } from './modules/notion/notion.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { RagModule } from './modules/rag/rag.module';
     RegulationsModule,
     TelegramModule,
     RagModule,
+    NotionModule,
   ],
 })
 export class AppModule {}
