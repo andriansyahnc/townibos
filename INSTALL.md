@@ -9,6 +9,7 @@
 | MongoDB | ≥ 6 | Local or Atlas |
 | Telegram Bot Token | — | From [@BotFather](https://t.me/BotFather) |
 | Anthropic API Key | — | From [console.anthropic.com](https://console.anthropic.com) |
+| Notion Integration Token | — | From [notion.so/my-integrations](https://www.notion.so/my-integrations) |
 
 ## 1. Clone and install dependencies
 
@@ -39,6 +40,9 @@ TELEGRAM_BOT_TOKEN=<from @BotFather>
 TELEGRAM_WEBHOOK_URL=https://yourdomain.com/telegram/webhook   # only needed in production
 
 ANTHROPIC_API_KEY=<from console.anthropic.com>
+
+NOTION_API_KEY=<from notion.so/my-integrations>
+NOTION_DATABASE_ID=<32-char ID from your database URL>
 ```
 
 ### Getting a Telegram bot token
@@ -52,6 +56,19 @@ ANTHROPIC_API_KEY=<from console.anthropic.com>
 1. Go to [console.anthropic.com](https://console.anthropic.com)
 2. Create an API key under **API Keys**
 3. Copy it into `ANTHROPIC_API_KEY`
+
+### Setting up Notion as a regulations CMS
+
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) and create a new integration
+2. Copy the **Internal Integration Token** (`secret_...`) into `NOTION_API_KEY`
+3. In Notion, create a new **Database** (table view) with these properties:
+   - `Name` (title) — the regulation title
+   - `Category` (select) — add options: `tata_tertib`, `iuran`, `fasilitas`, `parkir`, `hewan`, `renovasi`, `lainnya`
+4. Open the database, click **...** → **Connections** → add your integration
+5. Copy the database ID from the URL: `notion.so/<workspace>/<DATABASE_ID>?v=...` — it's the 32-char segment before `?v=`
+6. Paste it into `NOTION_DATABASE_ID`
+
+Once configured, fill each Notion page with the regulation content. The page body supports headings, bullet lists, and numbered lists.
 
 ## 3. Start MongoDB
 
@@ -80,23 +97,27 @@ npm run start
 
 The API will be available at `http://localhost:3000/api/v1`.
 
-## 5. Seed initial regulations (optional but recommended)
+## 5. Seed regulations from Notion
 
-The RAG chatbot has no knowledge until you add regulation documents. Use the API to seed some:
+The RAG chatbot has no knowledge until you add regulation documents. The recommended approach is to sync from Notion:
 
+```bash
+curl -X POST http://localhost:3000/api/v1/notion/sync
+# → { "synced": 5, "errors": 0 }
+```
+
+This fetches all pages from your Notion database, upserts them into MongoDB, and auto-refreshes the RAG context. Re-run this whenever you update content in Notion.
+
+**Alternative — seed directly via API (no Notion required):**
 ```bash
 curl -X POST http://localhost:3000/api/v1/regulations \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Tata Tertib Umum",
     "category": "tata_tertib",
-    "content": "Penghuni wajib menjaga kebersihan area bersama. Jam tenang berlaku pukul 22.00–06.00. Tamu harus lapor ke pos keamanan."
+    "content": "Penghuni wajib menjaga kebersihan area bersama. Jam tenang berlaku pukul 22.00–06.00."
   }'
-```
 
-After seeding, call the refresh endpoint to load them into the AI context:
-
-```bash
 curl -X POST http://localhost:3000/api/v1/rag/refresh
 ```
 
@@ -143,3 +164,9 @@ No regulations are loaded. Run the seed step above and call `POST /api/v1/rag/re
 
 **`AnthropicError: 401`**
 `ANTHROPIC_API_KEY` is missing or invalid. Verify in the Anthropic console.
+
+**`APIResponseError: Could not find database`**
+`NOTION_DATABASE_ID` is wrong, or the integration hasn't been connected to the database. Go to the Notion database → **...** → **Connections** and add your integration.
+
+**Notion sync returns `synced: 0`**
+The database is empty, or all pages are missing the `Name` (title) or body content. Pages with no body are skipped.

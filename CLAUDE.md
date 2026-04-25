@@ -37,12 +37,17 @@ AppModule
  ├── PaymentsModule      Tagihan iuran/listrik/air/parkir; period is 'YYYY-MM' string
  ├── RegulationsModule   Peraturan tata tertib stored in MongoDB; source docs for RAG
  ├── RagModule           Claude-backed Q&A; depends on RegulationsModule
+ ├── NotionModule        Syncs Notion database → Regulation collection; triggers RAG refresh
  └── TelegramModule      Bot update handler; depends on Rag, Residents, Announcements, Payments
 ```
 
 ### RAG pipeline
 
-`RagService` (not a vector DB) loads all `Regulation` documents from MongoDB into a single in-memory string on first query, then passes it as the system prompt to `claude-sonnet-4-6` with `cache_control: { type: 'ephemeral' }` for prompt caching. Call `POST /api/v1/rag/refresh` after any regulation is created/updated to invalidate the in-memory cache.
+`RagService` (not a vector DB) loads all `Regulation` documents from MongoDB into a single in-memory string on first query, then passes it as the system prompt to `claude-sonnet-4-6` with `cache_control: { type: 'ephemeral' }` for prompt caching. Call `POST /api/v1/rag/refresh` after any regulation changes to invalidate the in-memory cache.
+
+### Notion sync
+
+`NotionService.sync()` fetches all pages from the configured Notion database, converts blocks to plain text, and upserts into `Regulation` using `notionPageId` as the key (so re-syncing is idempotent). Supported block types: paragraph, heading 1–3, bulleted/numbered list, to_do, quote, callout, toggle, divider. The sync auto-calls `RagService.refreshContext()` on completion — no manual refresh needed. `NOTION_API_KEY` and `NOTION_DATABASE_ID` must be set. The Notion database should have a `Category` (or `Kategori`) select property; values not matching the enum default to `lainnya`.
 
 ### Telegram bot
 
