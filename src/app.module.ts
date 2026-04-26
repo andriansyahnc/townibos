@@ -14,6 +14,9 @@ import { TelegramModule } from './modules/telegram/telegram.module';
 import { TownsModule } from './modules/towns/towns.module';
 import { UnitsModule } from './modules/units/units.module';
 
+const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
+const telegramEnabled = !!telegramToken && !telegramToken.startsWith('your-');
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
@@ -25,12 +28,17 @@ import { UnitsModule } from './modules/units/units.module';
       }),
     }),
 
-    TelegrafModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        token: config.get<string>('telegram.botToken'),
-      }),
-    }),
+    ...(telegramEnabled
+      ? [
+          TelegrafModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+              token: config.get<string>('telegram.botToken'),
+            }),
+          }),
+          TelegramModule,
+        ]
+      : []),
 
     AuthModule,
     TownsModule,
@@ -39,7 +47,6 @@ import { UnitsModule } from './modules/units/units.module';
     AnnouncementsModule,
     PaymentsModule,
     RegulationsModule,
-    TelegramModule,
     RagModule,
     NotionModule,
   ],
