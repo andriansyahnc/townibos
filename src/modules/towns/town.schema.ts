@@ -12,6 +12,9 @@ export class Town {
   slug: string;
 
   @Prop({ required: true })
+  notionApiKey: string;
+
+  @Prop({ required: true })
   notionDatabaseId: string;
 
   @Prop({ default: true })

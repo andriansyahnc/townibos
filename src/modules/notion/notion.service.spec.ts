@@ -1,4 +1,3 @@
-import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { RagService } from '../rag/rag.service';
 import { RegulationsService } from '../regulations/regulations.service';
@@ -7,6 +6,7 @@ import { NotionService } from './notion.service';
 
 const mockTown = {
   _id: { toString: () => 'town-1' },
+  notionApiKey: 'secret_town1key',
   notionDatabaseId: 'db-abc123',
 };
 
@@ -54,7 +54,6 @@ describe('NotionService', () => {
     const module = await Test.createTestingModule({
       providers: [
         NotionService,
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('test-key') } },
         {
           provide: TownsService,
           useValue: {
@@ -76,7 +75,6 @@ describe('NotionService', () => {
     service = module.get(NotionService);
     regulationsService = module.get(RegulationsService);
     ragService = module.get(RagService);
-    service.onModuleInit();
     jest.clearAllMocks();
     mockDatabasesQuery.mockResolvedValue({ results: mockNotionPages, has_more: false });
     mockBlocksList.mockResolvedValue({
@@ -88,6 +86,15 @@ describe('NotionService', () => {
   });
 
   describe('syncAll', () => {
+    it('creates a separate Notion client per town using its own API key', async () => {
+      const { Client } = require('@notionhq/client');
+      Client.mockClear();
+
+      await service.syncAll();
+
+      expect(Client).toHaveBeenCalledWith({ auth: 'secret_town1key' });
+    });
+
     it('syncs each active town and refreshes RAG context', async () => {
       const results = await service.syncAll();
 

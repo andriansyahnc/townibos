@@ -1,5 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger } from '@nestjs/common';
 import { Client, isFullPage } from '@notionhq/client';
 import {
   BlockObjectResponse,
@@ -21,38 +20,36 @@ const VALID_CATEGORIES = [
 ];
 
 @Injectable()
-export class NotionService implements OnModuleInit {
-  private client: Client;
+export class NotionService {
   private readonly logger = new Logger(NotionService.name);
 
   constructor(
-    private config: ConfigService,
     private townsService: TownsService,
     private regulationsService: RegulationsService,
     private ragService: RagService,
   ) {}
 
-  onModuleInit() {
-    this.client = new Client({ auth: this.config.get<string>('notion.apiKey') });
-  }
-
   async syncAll(): Promise<{ townId: string; synced: number; errors: number }[]> {
     const towns = await this.townsService.findActive();
     return Promise.all(
-      towns.map((town) => this.syncTown(town._id.toString(), town.notionDatabaseId)),
+      towns.map((town) =>
+        this.syncTown(town._id.toString(), town.notionApiKey, town.notionDatabaseId),
+      ),
     );
   }
 
   async syncOne(townId: string): Promise<{ townId: string; synced: number; errors: number }> {
     const town = await this.townsService.findOne(townId);
-    return this.syncTown(town._id.toString(), town.notionDatabaseId);
+    return this.syncTown(town._id.toString(), town.notionApiKey, town.notionDatabaseId);
   }
 
   private async syncTown(
     townId: string,
+    apiKey: string,
     databaseId: string,
   ): Promise<{ townId: string; synced: number; errors: number }> {
-    const pages = await this.fetchAllPages(databaseId);
+    const client = new Client({ auth: apiKey });
+    const pages = await this.fetchAllPages(client, databaseId);
     let synced = 0;
     let errors = 0;
 
@@ -60,7 +57,7 @@ export class NotionService implements OnModuleInit {
       try {
         const title = this.extractTitle(page);
         const category = this.extractCategory(page);
-        const content = await this.fetchPageContent(page.id);
+        const content = await this.fetchPageContent(client, page.id);
 
         if (!title || !content) continue;
 
@@ -84,12 +81,12 @@ export class NotionService implements OnModuleInit {
     return { townId, synced, errors };
   }
 
-  private async fetchAllPages(databaseId: string): Promise<PageObjectResponse[]> {
+  private async fetchAllPages(client: Client, databaseId: string): Promise<PageObjectResponse[]> {
     const pages: PageObjectResponse[] = [];
     let cursor: string | undefined;
 
     do {
-      const response = await (this.client as any).databases.query({
+      const response = await (client as any).databases.query({
         database_id: databaseId,
         start_cursor: cursor,
         page_size: 100,
@@ -105,12 +102,12 @@ export class NotionService implements OnModuleInit {
     return pages;
   }
 
-  private async fetchPageContent(pageId: string): Promise<string> {
+  private async fetchPageContent(client: Client, pageId: string): Promise<string> {
     const lines: string[] = [];
     let cursor: string | undefined;
 
     do {
-      const response = await this.client.blocks.children.list({
+      const response = await client.blocks.children.list({
         block_id: pageId,
         start_cursor: cursor,
         page_size: 100,
