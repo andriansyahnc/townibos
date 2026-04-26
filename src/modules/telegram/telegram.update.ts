@@ -6,6 +6,8 @@ import { RagService } from '../rag/rag.service';
 import { ResidentsService } from '../residents/residents.service';
 import { TownsService } from '../towns/towns.service';
 
+const pendingDaftar = new Map<string, string>(); // chatId → townSlug
+
 @Update()
 export class TelegramUpdate {
   constructor(
@@ -95,25 +97,56 @@ export class TelegramUpdate {
   async onDaftar(@Ctx() ctx: Context): Promise<void> {
     const text = (ctx.message as any)?.text || '';
     const parts = text.replace('/daftar', '').trim().split(/\s+/);
-    const phone = parts[0];
-    const slug = parts[1];
+    const slug = parts[0];
 
-    if (!phone || !slug) {
-      await ctx.reply(
-        'Format: /daftar <nomor-hp> <id-perumahan>\nContoh: /daftar 08123456789 griya-indah',
-      );
+    if (!slug) {
+      await ctx.reply('Format: /daftar <id-perumahan>\nContoh: /daftar griya-indah');
       return;
     }
 
-    let town: any;
     try {
-      town = await this.townsService.findBySlug(slug);
+      await this.townsService.findBySlug(slug);
     } catch {
       await ctx.reply('ID perumahan tidak ditemukan. Silahkan tanya admin.');
       return;
     }
 
     const chatId = String(ctx.from.id);
+    pendingDaftar.set(chatId, slug);
+
+    await ctx.reply('Tap tombol di bawah untuk bagikan nomor HP kamu.', {
+      reply_markup: {
+        keyboard: [[{ text: '📱 Bagikan Nomor HP', request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+      },
+    });
+  }
+
+  @On('contact')
+  async onContact(@Ctx() ctx: Context): Promise<void> {
+    const contact = (ctx.message as any)?.contact;
+    const chatId = String(ctx.from.id);
+    const slug = pendingDaftar.get(chatId);
+
+    await ctx.reply('Terima kasih!', { reply_markup: { remove_keyboard: true } });
+
+    if (!slug) {
+      await ctx.reply('Sesi pendaftaran sudah habis. Silahkan kirim /daftar <id-perumahan> lagi.');
+      return;
+    }
+
+    pendingDaftar.delete(chatId);
+
+    const phone: string | null = contact?.phone_number ?? null;
+    if (!phone) {
+      await ctx.reply(
+        'Nomor HP tidak tersedia di akun Telegram kamu.\nSilahkan daftar manual: /daftar <id-perumahan>\nlalu ketik nomor HP kamu ketika diminta.',
+      );
+      return;
+    }
+
+    const town = await this.townsService.findBySlug(slug);
     const telegramName = [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ');
     const { resident, created } = await this.residentsService.linkOrCreateTelegram(
       chatId,
