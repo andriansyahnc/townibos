@@ -1,10 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateTownDto } from './dto/create-town.dto';
+import { UpdateNotionCredentialsDto } from './dto/update-notion-credentials.dto';
 import { TownsService } from './towns.service';
 
 @ApiTags('towns')
@@ -25,6 +36,17 @@ export class TownsController {
   @ApiOperation({ summary: 'List all towns (superadmin)' })
   async findAll() {
     return (await this.service.findAll()).map((t) => this.mask(t));
+  }
+
+  @Patch('me/notion')
+  @Roles('admin', 'superadmin')
+  @ApiOperation({ summary: "Update own town's Notion credentials (admin)" })
+  async updateMyNotion(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: UpdateNotionCredentialsDto,
+  ) {
+    if (!user.townId) throw new BadRequestException('No town associated with this account');
+    return this.mask(await this.service.update(user.townId, dto));
   }
 
   @Get(':id')

@@ -100,7 +100,8 @@ Every domain controller (residents, units, payments, announcements, regulations)
 
 - **Read (findAll):** pass `user.townId` when role is `admin`; pass `undefined` for `superadmin` (no filter = all towns).
 - **Write (create):** override `dto.townId = user.townId` when role is `admin` — never trust the client-supplied townId.
-- **Service signature:** `findAll(townId?: string)` — optional so superadmin omits it; `if (townId) filter.townId = townId`.
+- **Mutate (update/remove):** pass `user.townId` to the service so the query uses a compound `{ _id, townId }` filter — an admin querying another town's record gets NotFoundException (not a 403, which would leak existence).
+- **Service signature:** use `findOneAndUpdate`/`findOneAndDelete` with `{ _id: id, ...(townId && { townId }) }` — never `findByIdAndUpdate`/`findByIdAndDelete` for scoped mutations.
 
 ```ts
 // Controller pattern
@@ -113,6 +114,20 @@ findAll(@CurrentUser() user: CurrentUserPayload) {
 create(@Body() dto: any, @CurrentUser() user: CurrentUserPayload) {
   if (user.role === 'admin') dto = { ...dto, townId: user.townId };
   return this.service.create(dto);
+}
+
+@Patch(':id')
+update(@Param('id') id: string, @Body() dto: any, @CurrentUser() user: CurrentUserPayload) {
+  return this.service.update(id, dto, user.role === 'admin' ? user.townId : undefined);
+}
+
+// Service pattern
+async update(id: string, dto: Partial<T>, townId?: string) {
+  const filter: any = { _id: id };
+  if (townId) filter.townId = townId;
+  const doc = await this.model.findOneAndUpdate(filter, dto, { new: true });
+  if (!doc) throw new NotFoundException(`... ${id} not found`);
+  return doc;
 }
 ```
 

@@ -36,13 +36,17 @@ export class ResidentsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a resident' })
-  update(@Param('id') id: string, @Body() dto: Partial<CreateResidentDto>) {
-    return this.service.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: Partial<CreateResidentDto>,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.update(id, dto, user.role === 'admin' ? user.townId : undefined);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a resident' })
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
+    return this.service.remove(id, user.role === 'admin' ? user.townId : undefined);
   }
 }

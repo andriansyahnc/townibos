@@ -46,13 +46,13 @@ export class RegulationsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a regulation' })
-  update(@Param('id') id: string, @Body() dto: any) {
-    return this.service.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: any, @CurrentUser() user: CurrentUserPayload) {
+    return this.service.update(id, dto, user.role === 'admin' ? user.townId : undefined);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a regulation' })
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
+    return this.service.remove(id, user.role === 'admin' ? user.townId : undefined);
   }
 }

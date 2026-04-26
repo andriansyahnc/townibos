@@ -19,7 +19,7 @@ const mockModel = {
   create: jest.fn(),
   find: jest.fn().mockReturnValue({ sort: sortMock }),
   findById: jest.fn().mockReturnValue({ exec: execMock }),
-  findByIdAndDelete: jest.fn(),
+  findOneAndDelete: jest.fn(),
 };
 
 describe('AnnouncementsService', () => {
@@ -86,15 +86,24 @@ describe('AnnouncementsService', () => {
 
   describe('remove', () => {
     it('deletes an announcement', async () => {
-      mockModel.findByIdAndDelete.mockResolvedValue(mockAnnouncement);
+      mockModel.findOneAndDelete.mockResolvedValue(mockAnnouncement);
 
       const result = await service.remove('ann-1');
 
+      expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: 'ann-1' });
       expect(result).toEqual({ deleted: true });
     });
 
+    it('scopes remove to townId when provided', async () => {
+      mockModel.findOneAndDelete.mockResolvedValue(mockAnnouncement);
+
+      await service.remove('ann-1', 'town-1');
+
+      expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: 'ann-1', townId: 'town-1' });
+    });
+
     it('throws NotFoundException when announcement not found', async () => {
-      mockModel.findByIdAndDelete.mockResolvedValue(null);
+      mockModel.findOneAndDelete.mockResolvedValue(null);
 
       await expect(service.remove('bad-id')).rejects.toThrow(NotFoundException);
     });

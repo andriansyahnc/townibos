@@ -50,13 +50,17 @@ export class UnitsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a unit' })
-  update(@Param('id') id: string, @Body() dto: Partial<CreateUnitDto>) {
-    return this.service.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: Partial<CreateUnitDto>,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.update(id, dto, user.role === 'admin' ? user.townId : undefined);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a unit' })
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
+    return this.service.remove(id, user.role === 'admin' ? user.townId : undefined);
   }
 }

@@ -21,14 +21,18 @@ export class UnitsService {
     return unit;
   }
 
-  async update(id: string, dto: Partial<Unit>) {
-    const unit = await this.model.findByIdAndUpdate(id, dto, { new: true });
+  async update(id: string, dto: Partial<Unit>, townId?: string) {
+    const filter: any = { _id: id };
+    if (townId) filter.townId = townId;
+    const unit = await this.model.findOneAndUpdate(filter, dto, { new: true });
     if (!unit) throw new NotFoundException(`Unit ${id} not found`);
     return unit;
   }
 
-  async remove(id: string) {
-    const unit = await this.model.findByIdAndDelete(id);
+  async remove(id: string, townId?: string) {
+    const filter: any = { _id: id };
+    if (townId) filter.townId = townId;
+    const unit = await this.model.findOneAndDelete(filter);
     if (!unit) throw new NotFoundException(`Unit ${id} not found`);
     return { deleted: true };
   }

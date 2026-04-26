@@ -23,8 +23,10 @@ export class AnnouncementsService {
     return doc;
   }
 
-  async remove(id: string) {
-    const doc = await this.model.findByIdAndDelete(id);
+  async remove(id: string, townId?: string) {
+    const filter: any = { _id: id };
+    if (townId) filter.townId = townId;
+    const doc = await this.model.findOneAndDelete(filter);
     if (!doc) throw new NotFoundException(`Announcement ${id} not found`);
     return { deleted: true };
   }

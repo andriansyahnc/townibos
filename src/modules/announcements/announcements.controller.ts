@@ -36,7 +36,7 @@ export class AnnouncementsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an announcement' })
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
+    return this.service.remove(id, user.role === 'admin' ? user.townId : undefined);
   }
 }

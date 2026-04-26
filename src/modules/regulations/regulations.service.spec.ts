@@ -18,9 +18,8 @@ const mockModel = {
   create: jest.fn(),
   find: jest.fn().mockReturnValue({ exec: execMock }),
   findById: jest.fn().mockReturnValue({ exec: execMock }),
-  findByIdAndUpdate: jest.fn(),
-  findByIdAndDelete: jest.fn(),
   findOneAndUpdate: jest.fn(),
+  findOneAndDelete: jest.fn(),
 };
 
 describe('RegulationsService', () => {
@@ -102,15 +101,32 @@ describe('RegulationsService', () => {
   describe('update', () => {
     it('updates and returns the regulation', async () => {
       const updated = { ...mockRegulation, title: 'Updated' };
-      mockModel.findByIdAndUpdate.mockResolvedValue(updated);
+      mockModel.findOneAndUpdate.mockResolvedValue(updated);
 
       const result = await service.update('reg-1', { title: 'Updated' });
 
+      expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: 'reg-1' },
+        { title: 'Updated' },
+        { new: true },
+      );
       expect(result.title).toBe('Updated');
     });
 
+    it('scopes update to townId when provided', async () => {
+      mockModel.findOneAndUpdate.mockResolvedValue(mockRegulation);
+
+      await service.update('reg-1', { title: 'Updated' }, 'town-1');
+
+      expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: 'reg-1', townId: 'town-1' },
+        { title: 'Updated' },
+        { new: true },
+      );
+    });
+
     it('throws NotFoundException when not found', async () => {
-      mockModel.findByIdAndUpdate.mockResolvedValue(null);
+      mockModel.findOneAndUpdate.mockResolvedValue(null);
 
       await expect(service.update('bad-id', {})).rejects.toThrow(NotFoundException);
     });
@@ -118,15 +134,24 @@ describe('RegulationsService', () => {
 
   describe('remove', () => {
     it('deletes and returns { deleted: true }', async () => {
-      mockModel.findByIdAndDelete.mockResolvedValue(mockRegulation);
+      mockModel.findOneAndDelete.mockResolvedValue(mockRegulation);
 
       const result = await service.remove('reg-1');
 
+      expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: 'reg-1' });
       expect(result).toEqual({ deleted: true });
     });
 
+    it('scopes remove to townId when provided', async () => {
+      mockModel.findOneAndDelete.mockResolvedValue(mockRegulation);
+
+      await service.remove('reg-1', 'town-1');
+
+      expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: 'reg-1', townId: 'town-1' });
+    });
+
     it('throws NotFoundException when not found', async () => {
-      mockModel.findByIdAndDelete.mockResolvedValue(null);
+      mockModel.findOneAndDelete.mockResolvedValue(null);
 
       await expect(service.remove('bad-id')).rejects.toThrow(NotFoundException);
     });
@@ -153,5 +178,19 @@ describe('RegulationsService', () => {
       { $set: { title: 'New' } },
       { upsert: true, new: true },
     );
+  });
+
+  it('saveEmbedding updates the embedding field', async () => {
+    const embedding = [0.1, 0.2, 0.3];
+    mockModel.findOneAndUpdate.mockResolvedValue({ ...mockRegulation, embedding });
+
+    const result = await service.saveEmbedding('reg-1', embedding);
+
+    expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: 'reg-1' },
+      { embedding },
+      { new: true },
+    );
+    expect(result.embedding).toEqual(embedding);
   });
 });

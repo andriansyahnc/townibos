@@ -24,14 +24,18 @@ export class RegulationsService {
     return doc;
   }
 
-  async update(id: string, dto: Partial<Regulation>) {
-    const doc = await this.model.findByIdAndUpdate(id, dto, { new: true });
+  async update(id: string, dto: Partial<Regulation>, townId?: string) {
+    const filter: any = { _id: id };
+    if (townId) filter.townId = townId;
+    const doc = await this.model.findOneAndUpdate(filter, dto, { new: true });
     if (!doc) throw new NotFoundException(`Regulation ${id} not found`);
     return doc;
   }
 
-  async remove(id: string) {
-    const doc = await this.model.findByIdAndDelete(id);
+  async remove(id: string, townId?: string) {
+    const filter: any = { _id: id };
+    if (townId) filter.townId = townId;
+    const doc = await this.model.findOneAndDelete(filter);
     if (!doc) throw new NotFoundException(`Regulation ${id} not found`);
     return { deleted: true };
   }
@@ -49,6 +53,6 @@ export class RegulationsService {
   }
 
   async saveEmbedding(id: string, embedding: number[]) {
-    return this.model.findByIdAndUpdate(id, { embedding }, { new: true });
+    return this.model.findOneAndUpdate({ _id: id }, { embedding }, { new: true });
   }
 }

@@ -19,8 +19,8 @@ const mockModel = {
   create: jest.fn(),
   find: jest.fn().mockReturnValue({ exec: execMock }),
   findById: jest.fn().mockReturnValue({ exec: execMock }),
-  findByIdAndUpdate: jest.fn(),
-  findByIdAndDelete: jest.fn(),
+  findOneAndUpdate: jest.fn(),
+  findOneAndDelete: jest.fn(),
 };
 
 describe('UnitsService', () => {
@@ -83,15 +83,32 @@ describe('UnitsService', () => {
   describe('update', () => {
     it('updates and returns the unit', async () => {
       const updated = { ...mockUnit, status: 'vacant' };
-      mockModel.findByIdAndUpdate.mockResolvedValue(updated);
+      mockModel.findOneAndUpdate.mockResolvedValue(updated);
 
       const result = await service.update('unit-1', { status: 'vacant' as any });
 
+      expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: 'unit-1' },
+        { status: 'vacant' },
+        { new: true },
+      );
       expect(result.status).toBe('vacant');
     });
 
+    it('scopes update to townId when provided', async () => {
+      mockModel.findOneAndUpdate.mockResolvedValue(mockUnit);
+
+      await service.update('unit-1', {}, 'town-1');
+
+      expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: 'unit-1', townId: 'town-1' },
+        {},
+        { new: true },
+      );
+    });
+
     it('throws NotFoundException when unit not found', async () => {
-      mockModel.findByIdAndUpdate.mockResolvedValue(null);
+      mockModel.findOneAndUpdate.mockResolvedValue(null);
 
       await expect(service.update('bad-id', {})).rejects.toThrow(NotFoundException);
     });
@@ -99,15 +116,24 @@ describe('UnitsService', () => {
 
   describe('remove', () => {
     it('deletes and returns { deleted: true }', async () => {
-      mockModel.findByIdAndDelete.mockResolvedValue(mockUnit);
+      mockModel.findOneAndDelete.mockResolvedValue(mockUnit);
 
       const result = await service.remove('unit-1');
 
+      expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: 'unit-1' });
       expect(result).toEqual({ deleted: true });
     });
 
+    it('scopes remove to townId when provided', async () => {
+      mockModel.findOneAndDelete.mockResolvedValue(mockUnit);
+
+      await service.remove('unit-1', 'town-1');
+
+      expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: 'unit-1', townId: 'town-1' });
+    });
+
     it('throws NotFoundException when unit not found', async () => {
-      mockModel.findByIdAndDelete.mockResolvedValue(null);
+      mockModel.findOneAndDelete.mockResolvedValue(null);
 
       await expect(service.remove('bad-id')).rejects.toThrow(NotFoundException);
     });
