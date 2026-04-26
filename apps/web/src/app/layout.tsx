@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
+import { Outfit } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { SidebarProvider } from '@/context/SidebarContext';
 import './globals.css';
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
+const outfit = Outfit({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Townibos',
@@ -12,10 +14,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={geist.variable}>
-      <body className="font-sans antialiased">
-        {children}
-        <Toaster richColors position="top-right" />
+    <html lang="id">
+      <body className={`${outfit.className} antialiased`}>
+        <ThemeProvider>
+          <SidebarProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+          </SidebarProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

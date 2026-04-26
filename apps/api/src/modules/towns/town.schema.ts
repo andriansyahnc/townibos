@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type TownDocument = Town & Document;
 
@@ -19,6 +19,9 @@ export class Town {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ type: Types.ObjectId, ref: 'DomainTemplate' })
+  domainTemplateId: Types.ObjectId | string;
 }
 
 export const TownSchema = SchemaFactory.createForClass(Town);

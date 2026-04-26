@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcryptjs';
 import { Model } from 'mongoose';
+import { TownsService } from '../towns/towns.service';
 import { AdminUser, AdminUserDocument } from './admin-user.schema';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class AuthService {
   constructor(
     @InjectModel(AdminUser.name) private adminModel: Model<AdminUserDocument>,
     private jwtService: JwtService,
+    private townsService: TownsService,
   ) {}
 
   async login(username: string, password: string) {
@@ -18,11 +20,20 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    const townId = user.townId ? user.townId.toString() : null;
+    let enabledModules: string[] | ['*'];
+    if (user.role === 'superadmin') {
+      enabledModules = ['*'];
+    } else {
+      enabledModules = townId ? await this.townsService.getEnabledModules(townId) : [];
+    }
+
     const payload = {
       sub: user._id.toString(),
       username: user.username,
       role: user.role,
-      townId: user.townId ? user.townId.toString() : null,
+      townId,
+      enabledModules,
     };
 
     return { access_token: this.jwtService.sign(payload) };

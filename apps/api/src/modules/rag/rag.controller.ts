@@ -32,10 +32,11 @@ export class RagController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Refresh the RAG context cache for own town (admin)' })
-  refresh(@CurrentUser() user: CurrentUserPayload) {
-    if (!user.townId) throw new BadRequestException('RAG requires a town context');
+  refresh(@Body('townId') bodyTownId: string, @CurrentUser() user: CurrentUserPayload) {
+    const townId = user.townId || bodyTownId;
+    if (!townId) throw new BadRequestException('RAG requires a town context');
     return this.service
-      .refreshContext(user.townId)
-      .then(() => ({ refreshed: true, townId: user.townId }));
+      .refreshContext(townId)
+      .then(() => ({ refreshed: true, townId }));
   }
 }

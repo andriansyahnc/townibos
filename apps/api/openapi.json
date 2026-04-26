@@ -368,6 +368,120 @@
         ]
       }
     },
+    "/api/v1/domain-templates": {
+      "get": {
+        "operationId": "DomainTemplatesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List all domain templates (public)",
+        "tags": [
+          "domain-templates"
+        ]
+      },
+      "post": {
+        "operationId": "DomainTemplatesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDomainTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a domain template",
+        "tags": [
+          "domain-templates"
+        ]
+      }
+    },
+    "/api/v1/domain-templates/registry": {
+      "get": {
+        "operationId": "DomainTemplatesController_registry",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List all available module slugs",
+        "tags": [
+          "domain-templates"
+        ]
+      }
+    },
+    "/api/v1/domain-templates/{id}": {
+      "patch": {
+        "operationId": "DomainTemplatesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a domain template",
+        "tags": [
+          "domain-templates"
+        ]
+      },
+      "delete": {
+        "operationId": "DomainTemplatesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a domain template",
+        "tags": [
+          "domain-templates"
+        ]
+      }
+    },
     "/api/v1/residents": {
       "post": {
         "operationId": "ResidentsController_create",
@@ -496,6 +610,103 @@
         "summary": "Delete a resident",
         "tags": [
           "residents"
+        ]
+      }
+    },
+    "/api/v1/residents/portal/request-link": {
+      "post": {
+        "operationId": "ResidentPortalController_requestLink",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestMagicLinkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Request a magic link to log in (public)",
+        "tags": [
+          "resident-portal"
+        ]
+      }
+    },
+    "/api/v1/residents/portal/verify": {
+      "get": {
+        "operationId": "ResidentPortalController_verify",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Verify magic link token and receive JWT (public)",
+        "tags": [
+          "resident-portal"
+        ]
+      }
+    },
+    "/api/v1/residents/portal/me": {
+      "get": {
+        "operationId": "ResidentPortalController_getMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get own resident profile",
+        "tags": [
+          "resident-portal"
+        ]
+      },
+      "patch": {
+        "operationId": "ResidentPortalController_updateMe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own resident profile",
+        "tags": [
+          "resident-portal"
         ]
       }
     },
@@ -1275,6 +1486,10 @@
           "isActive": {
             "type": "boolean",
             "default": true
+          },
+          "domainTemplateId": {
+            "type": "string",
+            "description": "ObjectId of a DomainTemplate"
           }
         },
         "required": [
@@ -1297,6 +1512,60 @@
             "example": "712341dc83fa4ecca8b8fa27913d4f31"
           }
         }
+      },
+      "CreateDomainTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Sekolah"
+          },
+          "slug": {
+            "type": "string",
+            "example": "sekolah"
+          },
+          "memberLabel": {
+            "type": "string",
+            "example": "Siswa"
+          },
+          "assetLabel": {
+            "type": "string",
+            "example": "Kelas"
+          },
+          "documentLabel": {
+            "type": "string",
+            "example": "Peraturan Sekolah"
+          },
+          "ragRole": {
+            "type": "string",
+            "example": "asisten informasi sekolah"
+          },
+          "portalTitle": {
+            "type": "string",
+            "example": "Portal Siswa"
+          },
+          "enabledModules": {
+            "example": [
+              "residents",
+              "announcements",
+              "scores",
+              "guardians"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "memberLabel",
+          "assetLabel",
+          "documentLabel",
+          "ragRole",
+          "portalTitle"
+        ]
       },
       "CreateResidentDto": {
         "type": "object",
@@ -1332,6 +1601,32 @@
           "email",
           "phone"
         ]
+      },
+      "RequestMagicLinkDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "penghuni@example.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
       },
       "CreateUnitDto": {
         "type": "object",

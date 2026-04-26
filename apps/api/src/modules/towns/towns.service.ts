@@ -18,20 +18,26 @@ export class TownsService {
   }
 
   async findAll() {
-    const docs = await this.model.find().exec();
+    const docs = await this.model.find().populate('domainTemplateId').exec();
     return docs.map((d) => this.decryptTown(d));
   }
 
   async findOne(id: string) {
-    const doc = await this.model.findById(id).exec();
+    const doc = await this.model.findById(id).populate('domainTemplateId').exec();
     if (!doc) throw new NotFoundException(`Town ${id} not found`);
     return this.decryptTown(doc);
   }
 
   async findBySlug(slug: string) {
-    const doc = await this.model.findOne({ slug }).exec();
+    const doc = await this.model.findOne({ slug }).populate('domainTemplateId').exec();
     if (!doc) throw new NotFoundException(`Town ${slug} not found`);
     return this.decryptTown(doc);
+  }
+
+  async getEnabledModules(townId: string): Promise<string[]> {
+    const doc = await this.model.findById(townId).populate('domainTemplateId').exec();
+    const tpl = doc?.domainTemplateId as any;
+    return tpl?.enabledModules ?? ['residents', 'units', 'announcements', 'payments', 'regulations'];
   }
 
   async update(id: string, dto: Partial<Town>) {

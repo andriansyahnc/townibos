@@ -29,4 +29,9 @@ export class CreateTownDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ description: 'ObjectId of a DomainTemplate' })
+  @IsOptional()
+  @IsString()
+  domainTemplateId?: string;
 }

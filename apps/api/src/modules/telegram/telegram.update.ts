@@ -46,12 +46,12 @@ export class TelegramUpdate {
   @Start()
   async onStart(@Ctx() ctx: Context): Promise<void> {
     await ctx.reply(
-      `Halo! Selamat datang di bot Townibos 🏘️\n\n` +
+      `Halo! Selamat datang di bot Townibos.\n\n` +
         `Perintah yang tersedia:\n` +
         `/pengumuman — Lihat pengumuman terbaru\n` +
-        `/tagihan — Cek tagihan iuran\n` +
-        `/tanya [pertanyaan] — Tanya peraturan perumahan\n` +
-        `/daftar <id-perumahan> — Daftarkan akun Telegram kamu`,
+        `/tagihan — Cek tagihan\n` +
+        `/tanya [pertanyaan] — Tanya informasi organisasi kamu\n` +
+        `/daftar <id-organisasi> — Daftarkan akun Telegram kamu`,
     );
   }
 
@@ -59,7 +59,7 @@ export class TelegramUpdate {
   async onPengumuman(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
     if (!resident) {
-      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-perumahan>');
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-organisasi>');
       return;
     }
 
@@ -80,7 +80,7 @@ export class TelegramUpdate {
   async onTagihan(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
     if (!resident) {
-      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-perumahan>');
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-organisasi>');
       return;
     }
 
@@ -108,14 +108,14 @@ export class TelegramUpdate {
   async onTanya(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
     if (!resident) {
-      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-perumahan>');
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-organisasi>');
       return;
     }
 
     const text = (ctx.message as any)?.text || '';
     const question = text.replace('/tanya', '').trim();
     if (!question) {
-      await ctx.reply('Contoh: /tanya Bolehkah memelihara kucing di unit?');
+      await ctx.reply('Contoh: /tanya Apa peraturannya?');
       return;
     }
 
@@ -135,14 +135,14 @@ export class TelegramUpdate {
     const slug = parts[0];
 
     if (!slug) {
-      await ctx.reply('Format: /daftar <id-perumahan>\nContoh: /daftar griya-indah');
+      await ctx.reply('Format: /daftar <id-organisasi>\nContoh: /daftar griya-indah');
       return;
     }
 
     try {
       await this.townsService.findBySlug(slug);
     } catch {
-      await ctx.reply('ID perumahan tidak ditemukan. Silahkan tanya admin.');
+      await ctx.reply('ID organisasi tidak ditemukan. Silahkan tanya admin.');
       return;
     }
 
@@ -169,7 +169,7 @@ export class TelegramUpdate {
     await ctx.reply('Terima kasih!', { reply_markup: { remove_keyboard: true } });
 
     if (!slug) {
-      await ctx.reply('Sesi pendaftaran sudah habis. Silahkan kirim /daftar <id-perumahan> lagi.');
+      await ctx.reply('Sesi pendaftaran sudah habis. Silahkan kirim /daftar <id-organisasi> lagi.');
       return;
     }
 
@@ -236,7 +236,7 @@ export class TelegramUpdate {
 
     const resident = await this.getResidentByChat(ctx);
     if (!resident) {
-      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-perumahan>');
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-organisasi>');
       return;
     }
 

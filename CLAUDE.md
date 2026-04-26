@@ -58,7 +58,7 @@ Townibos is a **residential complex (perumahan) CRM** with three integrated surf
 ```
 AppModule
  ├── AuthModule          JWT login; AdminUser in MongoDB; bcrypt passwords; roles: superadmin | admin
- ├── ResidentsModule     Penghuni CRUD; phone is the join key to Telegram identity
+ ├── ResidentsModule     Penghuni CRUD; phone is the join key to Telegram identity; resident portal (magic link login + profile self-service)
  ├── UnitsModule         Hunian/unit CRUD (block, floor, type, status)
  ├── AnnouncementsModule Pengumuman; broadcastTelegram flag for future push
  ├── PaymentsModule      Tagihan iuran/listrik/air/parkir; period is 'YYYY-MM' string
@@ -85,6 +85,15 @@ AppModule
 - `Resident` → `Unit` (ObjectId ref, optional — a resident may not yet have a unit assigned)
 - `Payment` → `Resident` + `Unit` (both required refs)
 - `Regulation` has an `embedding: number[]` field reserved for future vector similarity; currently unused
+
+### Resident portal (magic link)
+
+`ResidentPortalController` (`/api/v1/residents/portal/...`) handles self-service:
+- `POST /request-link` — public; finds resident by email, stores `magicToken` + `magicTokenExpiry` (15 min) on Resident doc, sends email via `EmailService`
+- `GET /verify?token=` — public; validates token + expiry, `$unset`s both fields, returns resident JWT with `role: 'resident'`
+- `GET /me`, `PATCH /me` — protected by `JwtAuthGuard` + `@Roles('resident')`; resident edits name/email/phone
+
+`EmailService` logs the magic link to the console when `SMTP_HOST` is unset (dev mode). Frontend portal lives at `/portal/*` (separate from admin at `/(protected)/*`); uses `localStorage['resident_token']` separate from admin `token`. Magic token fields have `select: false` on the schema so they never appear in normal queries.
 
 ### Config
 

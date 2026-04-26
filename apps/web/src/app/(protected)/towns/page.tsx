@@ -14,13 +14,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { towns, type Town } from '@/lib/api';
+import { towns, domainTemplates, type Town, type DomainTemplate } from '@/lib/api';
 
 const schema = z.object({
   name: z.string().min(1, 'Nama wajib diisi'),
   slug: z.string().min(1, 'Slug wajib diisi').regex(/^[a-z0-9-]+$/, 'Hanya huruf kecil, angka, dan tanda hubung'),
   address: z.string().optional(),
   isActive: z.boolean(),
+  domainTemplateId: z.string().optional(),
   notionDatabaseId: z.string().optional(),
   notionApiKey: z.string().optional(),
 });
@@ -29,6 +30,7 @@ type FormValues = z.infer<typeof schema>;
 
 export default function TownsPage() {
   const [list, setList] = useState<Town[]>([]);
+  const [templateList, setTemplateList] = useState<DomainTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Town | null>(null);
@@ -42,9 +44,10 @@ export default function TownsPage() {
   async function load() {
     setLoading(true);
     try {
-      setList(await towns.list());
+      const [t, dt] = await Promise.all([towns.list(), domainTemplates.list()]);
+      setList(t); setTemplateList(dt);
     } catch {
-      toast.error('Gagal memuat data perumahan');
+      toast.error('Gagal memuat data');
     } finally {
       setLoading(false);
     }
@@ -54,17 +57,21 @@ export default function TownsPage() {
 
   function openCreate() {
     setEditing(null);
-    form.reset({ name: '', slug: '', address: '', isActive: true, notionDatabaseId: '', notionApiKey: '' });
+    form.reset({ name: '', slug: '', address: '', isActive: true, domainTemplateId: '', notionDatabaseId: '', notionApiKey: '' });
     setOpen(true);
   }
 
   function openEdit(town: Town) {
     setEditing(town);
+    const tplId = typeof town.domainTemplateId === 'object' && town.domainTemplateId
+      ? (town.domainTemplateId as DomainTemplate)._id
+      : (town.domainTemplateId as string | null | undefined) ?? '';
     form.reset({
       name: town.name,
       slug: town.slug,
       address: town.address ?? '',
       isActive: town.isActive,
+      domainTemplateId: tplId,
       notionDatabaseId: town.notionDatabaseId ?? '',
       notionApiKey: '',
     });
@@ -77,6 +84,7 @@ export default function TownsPage() {
         ...values,
         notionApiKey: values.notionApiKey || undefined,
         notionDatabaseId: values.notionDatabaseId || undefined,
+        domainTemplateId: values.domainTemplateId || undefined,
       };
       if (editing) {
         await towns.update(editing._id, dto);
@@ -134,7 +142,7 @@ export default function TownsPage() {
             <TableRow>
               <TableHead>Nama</TableHead>
               <TableHead>Slug</TableHead>
-              <TableHead>Alamat</TableHead>
+              <TableHead>Domain</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Notion</TableHead>
               <TableHead className="text-right">Aksi</TableHead>
@@ -160,7 +168,12 @@ export default function TownsPage() {
                 <TableRow key={town._id}>
                   <TableCell className="font-medium">{town.name}</TableCell>
                   <TableCell className="text-muted-foreground font-mono text-xs">{town.slug}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{town.address ?? '—'}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {typeof town.domainTemplateId === 'object' && town.domainTemplateId
+                      ? (town.domainTemplateId as DomainTemplate).name
+                      : <span className="text-xs text-muted-foreground">—</span>
+                    }
+                  </TableCell>
                   <TableCell>
                     <Badge variant={town.isActive ? 'default' : 'secondary'}>
                       {town.isActive ? 'Aktif' : 'Nonaktif'}
@@ -244,6 +257,21 @@ export default function TownsPage() {
                     <SelectContent>
                       <SelectItem value="true">Aktif</SelectItem>
                       <SelectItem value="false">Nonaktif</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="domainTemplateId" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Template Domain</FormLabel>
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue placeholder="Pilih template (opsional)" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {templateList.map((t) => (
+                        <SelectItem key={t._id} value={t._id}>{t.name} — {t.memberLabel}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </FormItem>

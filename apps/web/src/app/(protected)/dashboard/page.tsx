@@ -73,7 +73,7 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Perumahan Terdaftar</CardTitle>
+          <CardTitle className="text-base">Domain Terdaftar</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -81,24 +81,36 @@ export default function DashboardPage() {
               {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : townList.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Belum ada perumahan terdaftar.</p>
+            <p className="text-sm text-muted-foreground">Belum ada domain terdaftar.</p>
           ) : (
             <div className="divide-y">
-              {townList.map((town) => (
-                <div key={town._id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-medium text-sm">{town.name}</p>
-                    <p className="text-xs text-muted-foreground">{town.slug}</p>
+              {townList.map((town) => {
+                const template = typeof town.domainTemplateId === 'object' && town.domainTemplateId
+                  ? town.domainTemplateId
+                  : null;
+                return (
+                  <div key={town._id} className="flex items-center justify-between py-3">
+                    <div>
+                      <p className="font-medium text-sm">{town.name}</p>
+                      <p className="text-xs text-muted-foreground">{town.slug}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {template && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                          {template.name}
+                        </span>
+                      )}
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        town.isActive
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-zinc-100 text-zinc-500'
+                      }`}>
+                        {town.isActive ? 'Aktif' : 'Nonaktif'}
+                      </span>
+                    </div>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    town.isActive
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-zinc-100 text-zinc-500'
-                  }`}>
-                    {town.isActive ? 'Aktif' : 'Nonaktif'}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

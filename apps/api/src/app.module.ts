@@ -5,11 +5,14 @@ import { TelegrafModule } from 'nestjs-telegraf';
 import configuration from './config/configuration';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { DomainTemplatesModule } from './modules/domain-templates/domain-templates.module';
+import { GuardiansModule } from './modules/guardians/guardians.module';
 import { NotionModule } from './modules/notion/notion.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { RagModule } from './modules/rag/rag.module';
 import { RegulationsModule } from './modules/regulations/regulations.module';
 import { ResidentsModule } from './modules/residents/residents.module';
+import { ScoresModule } from './modules/scores/scores.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { TownsModule } from './modules/towns/towns.module';
 import { UnitsModule } from './modules/units/units.module';
@@ -42,6 +45,7 @@ const telegramEnabled = !!telegramToken && !telegramToken.startsWith('your-');
       : []),
 
     AuthModule,
+    DomainTemplatesModule,
     TownsModule,
     ResidentsModule,
     UnitsModule,
@@ -50,6 +54,8 @@ const telegramEnabled = !!telegramToken && !telegramToken.startsWith('your-');
     RegulationsModule,
     RagModule,
     NotionModule,
+    ScoresModule,
+    GuardiansModule,
   ],
 })
 export class AppModule {}

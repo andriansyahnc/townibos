@@ -28,6 +28,12 @@ export class Resident {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ select: false })
+  magicToken: string;
+
+  @Prop({ select: false })
+  magicTokenExpiry: Date;
 }
 
 export const ResidentSchema = SchemaFactory.createForClass(Resident);

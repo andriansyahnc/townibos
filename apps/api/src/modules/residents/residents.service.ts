@@ -1,12 +1,23 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import * as crypto from 'crypto';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
+import { EmailService } from '../../common/email/email.service';
+import { ConfigService } from '@nestjs/config';
+import { TownsService } from '../towns/towns.service';
 import { CreateResidentDto } from './dto/create-resident.dto';
 import { Resident, ResidentDocument } from './resident.schema';
 
 @Injectable()
 export class ResidentsService {
-  constructor(@InjectModel(Resident.name) private model: Model<ResidentDocument>) {}
+  constructor(
+    @InjectModel(Resident.name) private model: Model<ResidentDocument>,
+    private jwtService: JwtService,
+    private emailService: EmailService,
+    private config: ConfigService,
+    private townsService: TownsService,
+  ) {}
 
   create(dto: CreateResidentDto) {
     return this.model.create(dto);
@@ -64,5 +75,61 @@ export class ResidentsService {
 
   findByTelegramChatId(telegramChatId: string) {
     return this.model.findOne({ telegramChatId }).exec();
+  }
+
+  // --- Portal (resident self-service) ---
+
+  async requestMagicLink(email: string): Promise<void> {
+    const resident = await this.model.findOne({ email, isActive: true });
+    if (!resident) return; // silent to prevent email enumeration
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 15 * 60 * 1000);
+    await this.model.updateOne({ _id: resident._id }, { magicToken: token, magicTokenExpiry: expiry });
+
+    const link = `${this.config.get('frontendUrl')}/portal/verify?token=${token}`;
+    await this.emailService.sendMagicLink(resident.email, link, resident.name);
+  }
+
+  async verifyMagicLink(token: string): Promise<{ access_token: string }> {
+    const resident = await this.model
+      .findOne({ magicToken: token, magicTokenExpiry: { $gt: new Date() }, isActive: true })
+      .select('+magicToken +magicTokenExpiry');
+    if (!resident) throw new UnauthorizedException('Link tidak valid atau sudah kedaluwarsa');
+
+    await this.model.updateOne(
+      { _id: resident._id },
+      { $unset: { magicToken: 1, magicTokenExpiry: 1 } },
+    );
+
+    const townId = resident.townId.toString();
+    const town = await this.townsService.findOne(townId);
+    const tpl = town?.domainTemplateId as any;
+    const enabledModules = await this.townsService.getEnabledModules(townId);
+
+    const payload = {
+      sub: resident._id.toString(),
+      role: 'resident',
+      townId,
+      memberLabel: tpl?.memberLabel ?? 'Penghuni',
+      portalTitle: tpl?.portalTitle ?? 'Portal Penghuni',
+      enabledModules,
+    };
+    return { access_token: this.jwtService.sign(payload, { expiresIn: '30d' }) };
+  }
+
+  async getMe(residentId: string) {
+    const resident = await this.model.findById(residentId).populate('unitId').exec();
+    if (!resident) throw new NotFoundException('Resident not found');
+    return resident;
+  }
+
+  async updateMe(residentId: string, dto: { name?: string; email?: string; phone?: string }) {
+    const resident = await this.model
+      .findByIdAndUpdate(residentId, dto, { returnDocument: 'after' })
+      .populate('unitId')
+      .exec();
+    if (!resident) throw new NotFoundException('Resident not found');
+    return resident;
   }
 }

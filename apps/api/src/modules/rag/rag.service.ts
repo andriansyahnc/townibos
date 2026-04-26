@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RegulationsService } from '../regulations/regulations.service';
+import { TownsService } from '../towns/towns.service';
 
 @Injectable()
 export class RagService implements OnModuleInit {
@@ -12,6 +13,7 @@ export class RagService implements OnModuleInit {
   constructor(
     private config: ConfigService,
     private regulationsService: RegulationsService,
+    private townsService: TownsService,
   ) {}
 
   onModuleInit() {
@@ -40,17 +42,22 @@ export class RagService implements OnModuleInit {
 
     const context = this.contextCache.get(townId) || '';
 
+    const town = await this.townsService.findOne(townId);
+    const tpl = town?.domainTemplateId as any;
+    const ragRole = tpl?.ragRole ?? 'asisten penghuni perumahan yang ramah dan membantu';
+    const docLabel = tpl?.documentLabel ?? 'peraturan perumahan';
+
     if (!context) {
-      return 'Belum ada peraturan yang terdaftar untuk perumahan ini.';
+      return `Belum ada ${docLabel} yang terdaftar untuk organisasi ini.`;
     }
 
-    const systemPrompt = `Kamu adalah asisten penghuni perumahan yang ramah dan membantu.
-Jawab pertanyaan berdasarkan peraturan perumahan di bawah ini saja.
-Jika informasi tidak ada dalam peraturan, katakan dengan jujur bahwa kamu tidak tahu.
+    const systemPrompt = `Kamu adalah ${ragRole}.
+Jawab pertanyaan berdasarkan ${docLabel} di bawah ini saja.
+Jika informasi tidak ada dalam ${docLabel}, katakan dengan jujur bahwa kamu tidak tahu.
 Jika ada informasi yang berbeda atau bertentangan, gunakan yang tanggal berlakunya paling baru.
 Gunakan Bahasa Indonesia yang sopan dan mudah dipahami.
 
-# PERATURAN PERUMAHAN
+# ${docLabel.toUpperCase()}
 ${context}`;
 
     const response = await this.client.messages.create({
