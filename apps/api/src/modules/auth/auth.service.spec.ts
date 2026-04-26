@@ -15,11 +15,14 @@ const mockAdminUser = {
   isActive: true,
 };
 
+const execMock = jest.fn();
 const selectMock = jest.fn();
 const mockModel = {
   findOne: jest.fn().mockReturnValue({ select: selectMock }),
+  find: jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ exec: execMock }) }),
   create: jest.fn(),
   findByIdAndUpdate: jest.fn(),
+  findByIdAndDelete: jest.fn(),
 };
 
 const mockJwtService = {
@@ -40,8 +43,8 @@ describe('AuthService', () => {
 
     service = module.get(AuthService);
     jest.clearAllMocks();
-    // Re-wire chain after clearAllMocks resets mockReturnValue
     mockModel.findOne.mockReturnValue({ select: selectMock });
+    mockModel.find.mockReturnValue({ select: jest.fn().mockReturnValue({ exec: execMock }) });
   });
 
   describe('login', () => {
@@ -103,6 +106,28 @@ describe('AuthService', () => {
       expect(id).toBe('user-id-1');
       expect(update.password).not.toBe('newpassword');
       expect(bcrypt.compareSync('newpassword', update.password)).toBe(true);
+    });
+  });
+
+  describe('listAdmins', () => {
+    it('returns all admin users without passwords', async () => {
+      execMock.mockResolvedValue([mockAdminUser]);
+
+      const result = await service.listAdmins();
+
+      expect(result).toEqual([mockAdminUser]);
+      expect(mockModel.find).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('removeAdmin', () => {
+    it('deletes the admin and returns { deleted: true }', async () => {
+      mockModel.findByIdAndDelete.mockResolvedValue(mockAdminUser);
+
+      const result = await service.removeAdmin('user-id-1');
+
+      expect(mockModel.findByIdAndDelete).toHaveBeenCalledWith('user-id-1');
+      expect(result).toEqual({ deleted: true });
     });
   });
 

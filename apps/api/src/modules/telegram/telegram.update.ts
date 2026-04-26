@@ -6,7 +6,31 @@ import { RagService } from '../rag/rag.service';
 import { ResidentsService } from '../residents/residents.service';
 import { TownsService } from '../towns/towns.service';
 
-const pendingDaftar = new Map<string, string>(); // chatId → townSlug
+const PENDING_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+type PendingEntry = { slug: string; expiresAt: number };
+const pendingDaftar = new Map<string, PendingEntry>(); // chatId → { slug, expiresAt }
+
+function setPending(chatId: string, slug: string) {
+  pendingDaftar.set(chatId, { slug, expiresAt: Date.now() + PENDING_TTL_MS });
+}
+
+function popPending(chatId: string): string | null {
+  const entry = pendingDaftar.get(chatId);
+  if (!entry) return null;
+  pendingDaftar.delete(chatId);
+  if (Date.now() > entry.expiresAt) return null;
+  return entry.slug;
+}
+
+function peekPending(chatId: string): string | null {
+  const entry = pendingDaftar.get(chatId);
+  if (!entry || Date.now() > entry.expiresAt) {
+    pendingDaftar.delete(chatId);
+    return null;
+  }
+  return entry.slug;
+}
 
 @Update()
 export class TelegramUpdate {
@@ -39,14 +63,17 @@ export class TelegramUpdate {
       return;
     }
 
-    const announcements = await this.announcementsService.getLatest(resident.townId.toString(), 3);
-    if (!announcements.length) {
-      await ctx.reply('Tidak ada pengumuman terbaru.');
-      return;
+    try {
+      const announcements = await this.announcementsService.getLatest(resident.townId.toString(), 3);
+      if (!announcements.length) {
+        await ctx.reply('Tidak ada pengumuman terbaru.');
+        return;
+      }
+      const text = announcements.map((a) => `📢 *${a.title}*\n${a.body}`).join('\n\n---\n\n');
+      await ctx.replyWithMarkdown(text);
+    } catch {
+      await ctx.reply('Gagal memuat pengumuman. Coba lagi nanti.');
     }
-
-    const text = announcements.map((a) => `📢 *${a.title}*\n${a.body}`).join('\n\n---\n\n');
-    await ctx.replyWithMarkdown(text);
   }
 
   @Command('tagihan')
@@ -57,20 +84,24 @@ export class TelegramUpdate {
       return;
     }
 
-    const payments = await this.paymentsService.getResidentPayments(String(resident._id));
-    const pending = payments.filter((p) => p.status !== 'paid');
+    try {
+      const payments = await this.paymentsService.getResidentPayments(String(resident._id));
+      const pending = payments.filter((p) => p.status !== 'paid');
 
-    if (!pending.length) {
-      await ctx.reply('Semua tagihan sudah lunas ✅');
-      return;
+      if (!pending.length) {
+        await ctx.reply('Semua tagihan sudah lunas ✅');
+        return;
+      }
+
+      const text = pending
+        .map(
+          (p) => `💰 ${p.type} — ${p.period}: Rp ${p.amount.toLocaleString('id-ID')} (${p.status})`,
+        )
+        .join('\n');
+      await ctx.reply(`Tagihan belum lunas:\n${text}`);
+    } catch {
+      await ctx.reply('Gagal memuat tagihan. Coba lagi nanti.');
     }
-
-    const text = pending
-      .map(
-        (p) => `💰 ${p.type} — ${p.period}: Rp ${p.amount.toLocaleString('id-ID')} (${p.status})`,
-      )
-      .join('\n');
-    await ctx.reply(`Tagihan belum lunas:\n${text}`);
   }
 
   @Command('tanya')
@@ -88,9 +119,13 @@ export class TelegramUpdate {
       return;
     }
 
-    await ctx.reply('Mencari jawaban... ⏳');
-    const answer = await this.ragService.query(question, resident.townId.toString());
-    await ctx.reply(answer);
+    try {
+      await ctx.reply('Mencari jawaban... ⏳');
+      const answer = await this.ragService.query(question, resident.townId.toString());
+      await ctx.reply(answer);
+    } catch {
+      await ctx.reply('Gagal mencari jawaban. Coba lagi nanti.');
+    }
   }
 
   @Command('daftar')
@@ -111,8 +146,7 @@ export class TelegramUpdate {
       return;
     }
 
-    const chatId = String(ctx.from.id);
-    pendingDaftar.set(chatId, slug);
+    setPending(String(ctx.from.id), slug);
 
     await ctx.reply(
       'Tap tombol di bawah untuk bagikan nomor HP kamu.\nAtau ketik nomor HP kamu langsung (contoh: 08123456789).',
@@ -128,9 +162,9 @@ export class TelegramUpdate {
 
   @On('contact')
   async onContact(@Ctx() ctx: Context): Promise<void> {
-    const contact = (ctx.message as any)?.contact;
     const chatId = String(ctx.from.id);
-    const slug = pendingDaftar.get(chatId);
+    // popPending deletes atomically — prevents duplicate processing from race conditions
+    const slug = popPending(chatId);
 
     await ctx.reply('Terima kasih!', { reply_markup: { remove_keyboard: true } });
 
@@ -139,48 +173,16 @@ export class TelegramUpdate {
       return;
     }
 
-    pendingDaftar.delete(chatId);
-
-    const phone: string | null = contact?.phone_number ?? null;
+    const phone: string | null = (ctx.message as any)?.contact?.phone_number ?? null;
     if (!phone) {
       await ctx.reply(
-        'Nomor HP tidak tersedia di akun Telegram kamu.\nSilahkan daftar manual: /daftar <id-perumahan>\nlalu ketik nomor HP kamu ketika diminta.',
+        'Nomor HP tidak tersedia di akun Telegram kamu.\nSilahkan ketik nomor HP kamu langsung setelah /daftar <id-perumahan>.',
       );
       return;
     }
 
-    const town = await this.townsService.findBySlug(slug);
-    const telegramName = [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ');
-    const { resident, created } = await this.residentsService.linkOrCreateTelegram(
-      chatId,
-      phone,
-      String(town._id),
-      telegramName,
-    );
-
-    const status = created ? 'Akun baru dibuat dan' : 'Akun';
-    await ctx.reply(
-      `Berhasil! ${status} ${resident.name} dari ${town.name} telah terhubung ke Telegram ✅`,
-    );
-  }
-
-  @On('text')
-  async onText(@Ctx() ctx: Context): Promise<void> {
-    const text = (ctx.message as any)?.text || '';
-    if (text.startsWith('/')) return;
-
-    const chatId = String(ctx.from.id);
-    const pendingSlug = pendingDaftar.get(chatId);
-
-    if (pendingSlug) {
-      const phone = text.trim();
-      if (!/^(\+62|62|0)[0-9]{8,13}$/.test(phone)) {
-        await ctx.reply('Format nomor HP tidak valid. Contoh: 08123456789 atau +6281234567890');
-        return;
-      }
-      pendingDaftar.delete(chatId);
-      await ctx.reply('Memproses pendaftaran...', { reply_markup: { remove_keyboard: true } });
-      const town = await this.townsService.findBySlug(pendingSlug);
+    try {
+      const town = await this.townsService.findBySlug(slug);
       const telegramName = [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ');
       const { resident, created } = await this.residentsService.linkOrCreateTelegram(
         chatId,
@@ -192,6 +194,43 @@ export class TelegramUpdate {
       await ctx.reply(
         `Berhasil! ${status} ${resident.name} dari ${town.name} telah terhubung ke Telegram ✅`,
       );
+    } catch {
+      await ctx.reply('Pendaftaran gagal. Coba lagi dengan /daftar <id-perumahan>.');
+    }
+  }
+
+  @On('text')
+  async onText(@Ctx() ctx: Context): Promise<void> {
+    const text = (ctx.message as any)?.text || '';
+    if (text.startsWith('/')) return;
+
+    const chatId = String(ctx.from.id);
+    const pendingSlug = peekPending(chatId);
+
+    if (pendingSlug) {
+      const phone = text.trim();
+      if (!/^(\+62|62|0)[0-9]{8,13}$/.test(phone)) {
+        await ctx.reply('Format nomor HP tidak valid. Contoh: 08123456789 atau +6281234567890');
+        return;
+      }
+      popPending(chatId);
+      await ctx.reply('Memproses pendaftaran...', { reply_markup: { remove_keyboard: true } });
+      try {
+        const town = await this.townsService.findBySlug(pendingSlug);
+        const telegramName = [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ');
+        const { resident, created } = await this.residentsService.linkOrCreateTelegram(
+          chatId,
+          phone,
+          String(town._id),
+          telegramName,
+        );
+        const status = created ? 'Akun baru dibuat dan' : 'Akun';
+        await ctx.reply(
+          `Berhasil! ${status} ${resident.name} dari ${town.name} telah terhubung ke Telegram ✅`,
+        );
+      } catch {
+        await ctx.reply('Pendaftaran gagal. Coba lagi dengan /daftar <id-perumahan>.');
+      }
       return;
     }
 
@@ -201,9 +240,13 @@ export class TelegramUpdate {
       return;
     }
 
-    await ctx.reply('Mencari jawaban... ⏳');
-    const answer = await this.ragService.query(text, resident.townId.toString());
-    await ctx.reply(answer);
+    try {
+      await ctx.reply('Mencari jawaban... ⏳');
+      const answer = await this.ragService.query(text, resident.townId.toString());
+      await ctx.reply(answer);
+    } catch {
+      await ctx.reply('Gagal mencari jawaban. Coba lagi nanti.');
+    }
   }
 
   private getResidentByChat(ctx: Context) {

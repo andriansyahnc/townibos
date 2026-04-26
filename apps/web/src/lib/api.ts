@@ -83,7 +83,7 @@ export type AdminUser = {
 export const users = {
   list: () => request<AdminUser[]>('/auth/admins'),
   create: (dto: { username: string; password: string; role: string; townId?: string }) =>
-    request<AdminUser>('/auth/register', { method: 'POST', body: JSON.stringify(dto) }),
+    request<AdminUser>('/auth/admins', { method: 'POST', body: JSON.stringify(dto) }),
   changePassword: (id: string, newPassword: string) =>
     request<void>(`/auth/admins/${id}/password`, {
       method: 'PATCH',

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { jwtDecode } from 'jwt-decode';
 import { auth, setToken, setUser } from '@/lib/api';
 
 const schema = z.object({
@@ -27,8 +28,8 @@ export default function LoginPage() {
       const { access_token } = await auth.login(values.username, values.password);
       setToken(access_token);
 
-      // Decode role from JWT payload
-      const payload = JSON.parse(atob(access_token.split('.')[1]));
+      const payload = jwtDecode<{ sub: string; username: string; role: string; townId?: string }>(access_token);
+      if (!payload.sub || !payload.role) throw new Error('Token tidak valid');
       setUser({ id: payload.sub, username: payload.username, role: payload.role, townId: payload.townId });
 
       router.push('/dashboard');

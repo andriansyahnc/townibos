@@ -4,7 +4,8 @@ import { Building2, FileText, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { towns, users, type Town, type AdminUser } from '@/lib/api';
+import { towns, users, type AdminUser, type Town } from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const [townList, setTownList] = useState<Town[]>([]);
@@ -17,7 +18,7 @@ export default function DashboardPage() {
         setTownList(t);
         setUserList(u);
       })
-      .catch(() => {})
+      .catch(() => toast.error('Gagal memuat data dashboard'))
       .finally(() => setLoading(false));
   }, []);
 
