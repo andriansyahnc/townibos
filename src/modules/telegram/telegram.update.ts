@@ -114,14 +114,17 @@ export class TelegramUpdate {
     }
 
     const chatId = String(ctx.from.id);
-    const resident = await this.residentsService.linkTelegram(chatId, phone, String(town._id));
-    if (!resident) {
-      await ctx.reply('Nomor HP tidak ditemukan. Silahkan tanya admin.');
-      return;
-    }
+    const telegramName = [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ');
+    const { resident, created } = await this.residentsService.linkOrCreateTelegram(
+      chatId,
+      phone,
+      String(town._id),
+      telegramName,
+    );
 
+    const status = created ? 'Akun baru dibuat dan' : 'Akun';
     await ctx.reply(
-      `Berhasil! Akun ${resident.name} dari ${town.name} telah terhubung ke Telegram ✅`,
+      `Berhasil! ${status} ${resident.name} dari ${town.name} telah terhubung ke Telegram ✅`,
     );
   }
 

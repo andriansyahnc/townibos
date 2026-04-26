@@ -46,6 +46,18 @@ export class ResidentsService {
     return this.model.findOneAndUpdate(filter, { telegramChatId: chatId }, { new: true });
   }
 
+  async linkOrCreateTelegram(chatId: string, phone: string, townId: string, name: string) {
+    const existing = await this.model.findOneAndUpdate(
+      { phone, townId },
+      { telegramChatId: chatId },
+      { new: true },
+    );
+    if (existing) return { resident: existing, created: false };
+
+    const resident = await this.model.create({ name, phone, townId, telegramChatId: chatId });
+    return { resident, created: true };
+  }
+
   findByTelegramChatId(telegramChatId: string) {
     return this.model.findOne({ telegramChatId }).exec();
   }
