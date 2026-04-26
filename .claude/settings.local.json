@@ -9,7 +9,9 @@
       "Bash(git init *)",
       "Bash(git commit -m)",
       "Bash(npx husky *)",
-      "Bash(npx biome *)"
+      "Bash(npx biome *)",
+      "Bash(npm view *)",
+      "Bash(npm test *)"
     ]
   }
 }
