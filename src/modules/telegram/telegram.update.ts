@@ -29,31 +29,27 @@ export class TelegramUpdate {
 
   @Command('pengumuman')
   async onPengumuman(@Ctx() ctx: Context) {
-    const announcements = await this.announcementsService.getLatest(3);
-    if (!announcements.length) {
-      return ctx.reply('Tidak ada pengumuman terbaru.');
-    }
+    const resident = await this.getResidentByChat(ctx);
+    if (!resident)
+      return ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+
+    const announcements = await this.announcementsService.getLatest(resident.townId.toString(), 3);
+    if (!announcements.length) return ctx.reply('Tidak ada pengumuman terbaru.');
+
     const text = announcements.map((a) => `📢 *${a.title}*\n${a.body}`).join('\n\n---\n\n');
     await ctx.replyWithMarkdown(text);
   }
 
   @Command('tagihan')
   async onTagihan(@Ctx() ctx: Context) {
-    const chatId = String(ctx.from.id);
-    const resident = await this.residentsService['model']
-      ?.findOne({ telegramChatId: chatId })
-      .catch(() => null);
-
-    if (!resident) {
+    const resident = await this.getResidentByChat(ctx);
+    if (!resident)
       return ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
-    }
 
     const payments = await this.paymentsService.getResidentPayments(String(resident._id));
     const pending = payments.filter((p) => p.status !== 'paid');
 
-    if (!pending.length) {
-      return ctx.reply('Semua tagihan sudah lunas ✅');
-    }
+    if (!pending.length) return ctx.reply('Semua tagihan sudah lunas ✅');
 
     const text = pending
       .map(
@@ -65,15 +61,16 @@ export class TelegramUpdate {
 
   @Command('tanya')
   async onTanya(@Ctx() ctx: Context) {
+    const resident = await this.getResidentByChat(ctx);
+    if (!resident)
+      return ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+
     const text = (ctx.message as any)?.text || '';
     const question = text.replace('/tanya', '').trim();
-
-    if (!question) {
-      return ctx.reply('Contoh: /tanya Bolehkah memelihara kucing di unit?');
-    }
+    if (!question) return ctx.reply('Contoh: /tanya Bolehkah memelihara kucing di unit?');
 
     await ctx.reply('Mencari jawaban... ⏳');
-    const answer = await this.ragService.query(question);
+    const answer = await this.ragService.query(question, resident.townId.toString());
     await ctx.reply(answer);
   }
 
@@ -81,29 +78,31 @@ export class TelegramUpdate {
   async onDaftar(@Ctx() ctx: Context) {
     const text = (ctx.message as any)?.text || '';
     const phone = text.replace('/daftar', '').trim();
-
-    if (!phone) {
-      return ctx.reply('Format: /daftar 08xxxxxxxxxx');
-    }
+    if (!phone) return ctx.reply('Format: /daftar 08xxxxxxxxxx');
 
     const chatId = String(ctx.from.id);
     const resident = await this.residentsService.linkTelegram(chatId, phone);
-
-    if (!resident) {
-      return ctx.reply('Nomor HP tidak ditemukan. Hubungi pengelola perumahan.');
-    }
+    if (!resident) return ctx.reply('Nomor HP tidak ditemukan. Hubungi pengelola perumahan.');
 
     await ctx.reply(`Berhasil! Akun ${resident.name} telah terhubung ke Telegram ✅`);
   }
 
   @On('text')
   async onText(@Ctx() ctx: Context) {
-    // Default: route plain text as RAG question
     const text = (ctx.message as any)?.text || '';
     if (text.startsWith('/')) return;
 
+    const resident = await this.getResidentByChat(ctx);
+    if (!resident)
+      return ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+
     await ctx.reply('Mencari jawaban... ⏳');
-    const answer = await this.ragService.query(text);
+    const answer = await this.ragService.query(text, resident.townId.toString());
     await ctx.reply(answer);
+  }
+
+  private getResidentByChat(ctx: Context) {
+    const chatId = String(ctx.from?.id);
+    return this.residentsService.findByTelegramChatId(chatId);
   }
 }

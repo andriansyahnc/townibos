@@ -37,4 +37,8 @@ export class ResidentsService {
   linkTelegram(chatId: string, phone: string) {
     return this.model.findOneAndUpdate({ phone }, { telegramChatId: chatId }, { new: true });
   }
+
+  findByTelegramChatId(telegramChatId: string) {
+    return this.model.findOne({ telegramChatId }).exec();
+  }
 }

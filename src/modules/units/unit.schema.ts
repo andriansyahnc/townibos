@@ -1,11 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type UnitDocument = Unit & Document;
 
 @Schema({ timestamps: true })
 export class Unit {
-  @Prop({ required: true, unique: true })
+  @Prop({ type: Types.ObjectId, ref: 'Town', required: true })
+  townId: Types.ObjectId;
+
+  @Prop({ required: true })
   number: string;
 
   @Prop({ required: true })

@@ -11,6 +11,7 @@ import { RagModule } from './modules/rag/rag.module';
 import { RegulationsModule } from './modules/regulations/regulations.module';
 import { ResidentsModule } from './modules/residents/residents.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
+import { TownsModule } from './modules/towns/towns.module';
 import { UnitsModule } from './modules/units/units.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { UnitsModule } from './modules/units/units.module';
     }),
 
     AuthModule,
+    TownsModule,
     ResidentsModule,
     UnitsModule,
     AnnouncementsModule,

@@ -17,6 +17,9 @@ export class Resident {
   @Prop()
   telegramChatId: string;
 
+  @Prop({ type: Types.ObjectId, ref: 'Town', required: true })
+  townId: Types.ObjectId;
+
   @Prop({ type: Types.ObjectId, ref: 'Unit' })
   unitId: Types.ObjectId;
 

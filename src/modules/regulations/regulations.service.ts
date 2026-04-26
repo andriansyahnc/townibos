@@ -11,8 +11,10 @@ export class RegulationsService {
     return this.model.create(dto);
   }
 
-  findAll(category?: string) {
-    return this.model.find(category ? { category } : {}).exec();
+  findAll(townId: string, category?: string) {
+    const filter: any = { townId };
+    if (category) filter.category = category;
+    return this.model.find(filter).exec();
   }
 
   async findOne(id: string) {
@@ -33,12 +35,10 @@ export class RegulationsService {
     return { deleted: true };
   }
 
-  // Fetch all regulations without embeddings for RAG context building
-  getAllTexts() {
-    return this.model.find({}, { title: 1, content: 1, category: 1 }).exec();
+  getAllTexts(townId: string) {
+    return this.model.find({ townId }, { title: 1, content: 1, category: 1 }).exec();
   }
 
-  // Upsert a regulation synced from Notion — keyed on notionPageId
   upsertByNotionPageId(notionPageId: string, dto: Partial<Regulation>) {
     return this.model.findOneAndUpdate(
       { notionPageId },
@@ -47,7 +47,6 @@ export class RegulationsService {
     );
   }
 
-  // Store embedding for a regulation chunk (for vector similarity later)
   async saveEmbedding(id: string, embedding: number[]) {
     return this.model.findByIdAndUpdate(id, { embedding }, { new: true });
   }

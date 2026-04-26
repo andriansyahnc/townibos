@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Client, isFullBlock, isFullPage } from '@notionhq/client';
+import { Client, isFullPage } from '@notionhq/client';
 import {
   BlockObjectResponse,
   PageObjectResponse,
@@ -8,6 +8,7 @@ import {
 } from '@notionhq/client/build/src/api-endpoints';
 import { RagService } from '../rag/rag.service';
 import { RegulationsService } from '../regulations/regulations.service';
+import { TownsService } from '../towns/towns.service';
 
 const VALID_CATEGORIES = [
   'tata_tertib',
@@ -22,22 +23,36 @@ const VALID_CATEGORIES = [
 @Injectable()
 export class NotionService implements OnModuleInit {
   private client: Client;
-  private databaseId: string;
   private readonly logger = new Logger(NotionService.name);
 
   constructor(
     private config: ConfigService,
+    private townsService: TownsService,
     private regulationsService: RegulationsService,
     private ragService: RagService,
   ) {}
 
   onModuleInit() {
     this.client = new Client({ auth: this.config.get<string>('notion.apiKey') });
-    this.databaseId = this.config.get<string>('notion.databaseId');
   }
 
-  async sync(): Promise<{ synced: number; errors: number }> {
-    const pages = await this.fetchAllPages();
+  async syncAll(): Promise<{ townId: string; synced: number; errors: number }[]> {
+    const towns = await this.townsService.findActive();
+    return Promise.all(
+      towns.map((town) => this.syncTown(town._id.toString(), town.notionDatabaseId)),
+    );
+  }
+
+  async syncOne(townId: string): Promise<{ townId: string; synced: number; errors: number }> {
+    const town = await this.townsService.findOne(townId);
+    return this.syncTown(town._id.toString(), town.notionDatabaseId);
+  }
+
+  private async syncTown(
+    townId: string,
+    databaseId: string,
+  ): Promise<{ townId: string; synced: number; errors: number }> {
+    const pages = await this.fetchAllPages(databaseId);
     let synced = 0;
     let errors = 0;
 
@@ -50,6 +65,7 @@ export class NotionService implements OnModuleInit {
         if (!title || !content) continue;
 
         await this.regulationsService.upsertByNotionPageId(page.id, {
+          townId: townId as any,
           title,
           category,
           content,
@@ -63,18 +79,18 @@ export class NotionService implements OnModuleInit {
       }
     }
 
-    await this.ragService.refreshContext();
-    this.logger.log(`Notion sync complete: ${synced} synced, ${errors} errors`);
-    return { synced, errors };
+    await this.ragService.refreshContext(townId);
+    this.logger.log(`Town ${townId} sync complete: ${synced} synced, ${errors} errors`);
+    return { townId, synced, errors };
   }
 
-  private async fetchAllPages(): Promise<PageObjectResponse[]> {
+  private async fetchAllPages(databaseId: string): Promise<PageObjectResponse[]> {
     const pages: PageObjectResponse[] = [];
     let cursor: string | undefined;
 
     do {
       const response = await (this.client as any).databases.query({
-        database_id: this.databaseId,
+        database_id: databaseId,
         start_cursor: cursor,
         page_size: 100,
       });
@@ -113,42 +129,25 @@ export class NotionService implements OnModuleInit {
 
   private blockToText(block: BlockObjectResponse): string {
     const type = block.type;
-
-    if (type === 'paragraph') {
-      return this.richTextToPlain((block as any).paragraph.rich_text);
-    }
-    if (type === 'heading_1') {
+    if (type === 'paragraph') return this.richTextToPlain((block as any).paragraph.rich_text);
+    if (type === 'heading_1')
       return `# ${this.richTextToPlain((block as any).heading_1.rich_text)}`;
-    }
-    if (type === 'heading_2') {
+    if (type === 'heading_2')
       return `## ${this.richTextToPlain((block as any).heading_2.rich_text)}`;
-    }
-    if (type === 'heading_3') {
+    if (type === 'heading_3')
       return `### ${this.richTextToPlain((block as any).heading_3.rich_text)}`;
-    }
-    if (type === 'bulleted_list_item') {
+    if (type === 'bulleted_list_item')
       return `- ${this.richTextToPlain((block as any).bulleted_list_item.rich_text)}`;
-    }
-    if (type === 'numbered_list_item') {
+    if (type === 'numbered_list_item')
       return `1. ${this.richTextToPlain((block as any).numbered_list_item.rich_text)}`;
-    }
     if (type === 'to_do') {
       const checked = (block as any).to_do.checked ? '[x]' : '[ ]';
       return `${checked} ${this.richTextToPlain((block as any).to_do.rich_text)}`;
     }
-    if (type === 'quote') {
-      return `> ${this.richTextToPlain((block as any).quote.rich_text)}`;
-    }
-    if (type === 'callout') {
-      return this.richTextToPlain((block as any).callout.rich_text);
-    }
-    if (type === 'divider') {
-      return '---';
-    }
-    if (type === 'toggle') {
-      return this.richTextToPlain((block as any).toggle.rich_text);
-    }
-
+    if (type === 'quote') return `> ${this.richTextToPlain((block as any).quote.rich_text)}`;
+    if (type === 'callout') return this.richTextToPlain((block as any).callout.rich_text);
+    if (type === 'toggle') return this.richTextToPlain((block as any).toggle.rich_text);
+    if (type === 'divider') return '---';
     return '';
   }
 
@@ -158,9 +157,8 @@ export class NotionService implements OnModuleInit {
   }
 
   private extractTitle(page: PageObjectResponse): string {
-    const props = page.properties;
-    for (const key of Object.keys(props)) {
-      const prop = props[key];
+    for (const key of Object.keys(page.properties)) {
+      const prop = page.properties[key];
       if (prop.type === 'title' && prop.title?.length) {
         return prop.title.map((t) => t.plain_text).join('');
       }
@@ -169,9 +167,9 @@ export class NotionService implements OnModuleInit {
   }
 
   private extractCategory(page: PageObjectResponse): string {
-    const categoryProp = page.properties['Category'] ?? page.properties['Kategori'];
-    if (categoryProp?.type === 'select' && categoryProp.select?.name) {
-      const value = categoryProp.select.name.toLowerCase();
+    const prop = page.properties['Category'] ?? page.properties['Kategori'];
+    if (prop?.type === 'select' && prop.select?.name) {
+      const value = prop.select.name.toLowerCase();
       return VALID_CATEGORIES.includes(value) ? value : 'lainnya';
     }
     return 'lainnya';

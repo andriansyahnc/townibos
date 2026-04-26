@@ -6,7 +6,8 @@ import { RegulationsService } from '../regulations/regulations.service';
 @Injectable()
 export class RagService implements OnModuleInit {
   private client: Anthropic;
-  private cachedRegulationsPrompt: string = '';
+  // Per-town context cache: townId → formatted regulations string
+  private contextCache = new Map<string, string>();
 
   constructor(
     private config: ConfigService,
@@ -17,17 +18,27 @@ export class RagService implements OnModuleInit {
     this.client = new Anthropic({ apiKey: this.config.get<string>('anthropic.apiKey') });
   }
 
-  // Rebuild the context cache from DB — call after any regulation update
-  async refreshContext() {
-    const regulations = await this.regulationsService.getAllTexts();
-    this.cachedRegulationsPrompt = regulations
+  async refreshContext(townId: string) {
+    const regulations = await this.regulationsService.getAllTexts(townId);
+    const context = regulations
       .map((r) => `## ${r.title} (${r.category})\n${r.content}`)
       .join('\n\n---\n\n');
+    this.contextCache.set(townId, context);
   }
 
-  async query(question: string): Promise<string> {
-    if (!this.cachedRegulationsPrompt) {
-      await this.refreshContext();
+  async refreshAllContexts(townIds: string[]) {
+    await Promise.all(townIds.map((id) => this.refreshContext(id)));
+  }
+
+  async query(question: string, townId: string): Promise<string> {
+    if (!this.contextCache.has(townId)) {
+      await this.refreshContext(townId);
+    }
+
+    const context = this.contextCache.get(townId) || '';
+
+    if (!context) {
+      return 'Belum ada peraturan yang terdaftar untuk perumahan ini.';
     }
 
     const systemPrompt = `Kamu adalah asisten penghuni perumahan yang ramah dan membantu.
@@ -36,7 +47,7 @@ Jika informasi tidak ada dalam peraturan, katakan dengan jujur bahwa kamu tidak 
 Gunakan Bahasa Indonesia yang sopan dan mudah dipahami.
 
 # PERATURAN PERUMAHAN
-${this.cachedRegulationsPrompt}`;
+${context}`;
 
     const response = await this.client.messages.create({
       model: 'claude-sonnet-4-6',
@@ -45,7 +56,6 @@ ${this.cachedRegulationsPrompt}`;
         {
           type: 'text',
           text: systemPrompt,
-          // Prompt caching: the regulations context rarely changes
           cache_control: { type: 'ephemeral' },
         },
       ],

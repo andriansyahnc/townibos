@@ -17,6 +17,5 @@ export default () => ({
   },
   notion: {
     apiKey: process.env.NOTION_API_KEY,
-    databaseId: process.env.NOTION_DATABASE_ID,
   },
 });

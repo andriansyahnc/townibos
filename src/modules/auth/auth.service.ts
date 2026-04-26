@@ -1,22 +1,40 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-
-// Hardcoded admin for boilerplate — replace with DB lookup
-const ADMIN = { id: 'admin', username: 'admin', password: 'admin123', role: 'admin' };
+import { InjectModel } from '@nestjs/mongoose';
+import * as bcrypt from 'bcryptjs';
+import { Model } from 'mongoose';
+import { AdminUser, AdminUserDocument } from './admin-user.schema';
 
 @Injectable()
 export class AuthService {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    @InjectModel(AdminUser.name) private adminModel: Model<AdminUserDocument>,
+    private jwtService: JwtService,
+  ) {}
 
   async login(username: string, password: string) {
-    if (username !== ADMIN.username || password !== ADMIN.password) {
+    const user = await this.adminModel.findOne({ username, isActive: true });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { sub: ADMIN.id, username: ADMIN.username, role: ADMIN.role };
+
+    const payload = {
+      sub: user._id.toString(),
+      username: user.username,
+      role: user.role,
+      townId: user.townId ? user.townId.toString() : null,
+    };
+
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  verifyToken(token: string) {
-    return this.jwtService.verify(token);
+  async createAdmin(dto: { username: string; password: string; role: string; townId?: string }) {
+    const hash = await bcrypt.hash(dto.password, 10);
+    return this.adminModel.create({ ...dto, password: hash });
+  }
+
+  async changePassword(userId: string, newPassword: string) {
+    const hash = await bcrypt.hash(newPassword, 10);
+    return this.adminModel.findByIdAndUpdate(userId, { password: hash }, { new: true });
   }
 }

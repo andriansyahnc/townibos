@@ -27,7 +27,7 @@ export class AnnouncementsService {
     return { deleted: true };
   }
 
-  getLatest(limit = 5) {
-    return this.model.find().sort({ createdAt: -1 }).limit(limit).exec();
+  getLatest(townId: string, limit = 5) {
+    return this.model.find({ townId }).sort({ createdAt: -1 }).limit(limit).exec();
   }
 }
