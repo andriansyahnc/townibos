@@ -2,6 +2,7 @@
   "name": "townibos",
   "version": "1.0.0",
   "main": "index.js",
+  "packageManager": "pnpm@10.12.4",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main",

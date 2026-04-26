@@ -26,28 +26,28 @@ If code is no longer called — a method, import, env var, or entire file — de
 
 ```bash
 # Development
-npm run start:dev       # nodemon hot-reload via ts-node
-npm run start:debug     # single run via ts-node (no watch)
+pnpm run start:dev       # nodemon hot-reload via ts-node
+pnpm run start:debug     # single run via ts-node (no watch)
 
 # Build & production
-npm run build           # tsc → dist/
-npm run start           # node dist/main
+pnpm run build           # tsc → dist/
+pnpm run start           # node dist/main
 
 # Type check (no emit)
-npx tsc --noEmit
+pnpm exec tsc --noEmit
 
 # Tests
-npm test                # jest
+pnpm test                # jest
 ```
 
 # Lint / format (Biome)
-npm run check          # lint + format check
-npm run check:fix      # auto-fix lint + format
+pnpm run check          # lint + format check
+pnpm run check:fix      # auto-fix lint + format
 
 # Docker
-npm run docker:dev     # dev stack with hot-reload (mounts ./src)
-npm run docker:prod    # production stack (compiled image)
-npm run docker:down    # stop and remove containers
+pnpm run docker:dev     # dev stack with hot-reload (mounts ./src)
+pnpm run docker:prod    # production stack (compiled image)
+pnpm run docker:down    # stop and remove containers
 
 ## Architecture
 

@@ -5,6 +5,16 @@
       "post": {
         "operationId": "AuthController_login",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -20,6 +30,16 @@
       "post": {
         "operationId": "AuthController_createAdmin",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -40,6 +60,16 @@
       "patch": {
         "operationId": "AuthController_changeOwnPassword",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -70,6 +100,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -124,6 +164,36 @@
           }
         ],
         "summary": "List all towns (superadmin)",
+        "tags": [
+          "towns"
+        ]
+      }
+    },
+    "/api/v1/towns/me/notion": {
+      "patch": {
+        "operationId": "TownsController_updateMyNotion",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotionCredentialsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own town's Notion credentials (admin)",
         "tags": [
           "towns"
         ]
@@ -879,8 +949,14 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ask a question about town regulations",
         "tags": [
-          "Rag"
+          "rag"
         ]
       }
     },
@@ -893,8 +969,14 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Refresh the RAG context cache for own town",
         "tags": [
-          "Rag"
+          "rag"
         ]
       }
     },
@@ -990,6 +1072,82 @@
       }
     },
     "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "superadmin"
+          },
+          "password": {
+            "type": "string",
+            "example": "changeme123"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "CreateAdminDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "admin-griya"
+          },
+          "password": {
+            "type": "string",
+            "example": "strongpassword"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "superadmin",
+              "admin"
+            ]
+          },
+          "townId": {
+            "type": "string",
+            "example": "64b1f...",
+            "description": "Required when role is admin"
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "role"
+        ]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "example": "new-strong-password"
+          }
+        },
+        "required": [
+          "newPassword"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "superadmin"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "new-strong-password"
+          }
+        },
+        "required": [
+          "username",
+          "newPassword"
+        ]
+      },
       "CreateTownDto": {
         "type": "object",
         "properties": {
@@ -1022,6 +1180,20 @@
           "notionApiKey",
           "notionDatabaseId"
         ]
+      },
+      "UpdateNotionCredentialsDto": {
+        "type": "object",
+        "properties": {
+          "notionApiKey": {
+            "type": "string",
+            "example": "secret_abc123...",
+            "description": "Notion internal integration token"
+          },
+          "notionDatabaseId": {
+            "type": "string",
+            "example": "712341dc83fa4ecca8b8fa27913d4f31"
+          }
+        }
       },
       "CreateResidentDto": {
         "type": "object",
