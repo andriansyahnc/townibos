@@ -74,7 +74,7 @@ AppModule
 
 ### Notion sync
 
-`NotionService.syncAll()` fetches all pages from each active town's Notion database, converts blocks to plain text, and upserts into `Regulation` using `notionPageId` as the key (idempotent re-sync). A fresh `Client` is created per town using its decrypted `notionApiKey`. Supported block types: paragraph, heading 1–3, bulleted/numbered list, to_do, quote, callout, toggle, divider. `callout` and `toggle` render as plain text (no prefix). The sync auto-calls `RagService.refreshContext(townId)` per town on completion. The Notion database must have a `Category` (or `Kategori`) select property; values not in the enum default to `lainnya`. There is no global `NOTION_API_KEY` — keys are stored per town in MongoDB, encrypted at rest.
+`NotionService.syncAll()` fetches all pages from each active town's Notion database, converts blocks to plain text, and upserts into `Regulation` using `notionPageId` as the key (idempotent re-sync). A fresh `Client` is created per town using its decrypted `notionApiKey`. Supported block types: paragraph, heading 1–3, bulleted/numbered list, to_do, quote, callout, toggle, divider. `callout` and `toggle` render as plain text (no prefix). The sync auto-calls `RagService.refreshContext(townId)` per town on completion. The Notion database optionally has a `Category` (or `Kategori`) select property — values are free-form strings stored as-is (lowercased); no hardcoded enum, each town defines their own categories directly in Notion. Missing category is stored as `''`. There is no global `NOTION_API_KEY` — keys are stored per town in MongoDB, encrypted at rest.
 
 ### Telegram bot
 

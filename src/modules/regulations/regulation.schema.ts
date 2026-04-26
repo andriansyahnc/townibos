@@ -14,7 +14,7 @@ export class Regulation {
   @Prop({ required: true })
   content: string;
 
-  @Prop({ enum: ['tata_tertib', 'iuran', 'fasilitas', 'parkir', 'hewan', 'renovasi', 'lainnya'] })
+  @Prop()
   category: string;
 
   // Notion page ID — set when synced from Notion; used as upsert key

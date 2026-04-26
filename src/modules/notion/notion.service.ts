@@ -9,16 +9,6 @@ import { RagService } from '../rag/rag.service';
 import { RegulationsService } from '../regulations/regulations.service';
 import { TownsService } from '../towns/towns.service';
 
-const VALID_CATEGORIES = [
-  'tata_tertib',
-  'iuran',
-  'fasilitas',
-  'parkir',
-  'hewan',
-  'renovasi',
-  'lainnya',
-];
-
 @Injectable()
 export class NotionService {
   private readonly logger = new Logger(NotionService.name);
@@ -166,9 +156,8 @@ export class NotionService {
   private extractCategory(page: PageObjectResponse): string {
     const prop = page.properties['Category'] ?? page.properties['Kategori'];
     if (prop?.type === 'select' && prop.select?.name) {
-      const value = prop.select.name.toLowerCase();
-      return VALID_CATEGORIES.includes(value) ? value : 'lainnya';
+      return prop.select.name.toLowerCase();
     }
-    return 'lainnya';
+    return '';
   }
 }

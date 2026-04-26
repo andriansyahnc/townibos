@@ -198,12 +198,12 @@ describe('NotionService', () => {
   });
 
   describe('category extraction', () => {
-    it('defaults to lainnya for unknown category values', async () => {
+    it('passes any category value through as-is (lowercased)', async () => {
       const page = {
         ...mockNotionPages[0],
         properties: {
           Name: mockNotionPages[0].properties.Name,
-          Category: { type: 'select', select: { name: 'unknown_value' } },
+          Category: { type: 'select', select: { name: 'Kebersihan' } },
         },
       };
       mockDatabasesQuery.mockResolvedValueOnce({ results: [page], has_more: false });
@@ -212,7 +212,22 @@ describe('NotionService', () => {
 
       expect(regulationsService.upsertByNotionPageId).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ category: 'lainnya' }),
+        expect.objectContaining({ category: 'kebersihan' }),
+      );
+    });
+
+    it('returns empty string when no Category or Kategori property exists', async () => {
+      const page = {
+        ...mockNotionPages[0],
+        properties: { Name: mockNotionPages[0].properties.Name },
+      };
+      mockDatabasesQuery.mockResolvedValueOnce({ results: [page], has_more: false });
+
+      await service.syncAll();
+
+      expect(regulationsService.upsertByNotionPageId).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ category: '' }),
       );
     });
 
