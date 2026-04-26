@@ -3,10 +3,11 @@ import { AnnouncementsModule } from '../announcements/announcements.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { RagModule } from '../rag/rag.module';
 import { ResidentsModule } from '../residents/residents.module';
+import { TownsModule } from '../towns/towns.module';
 import { TelegramUpdate } from './telegram.update';
 
 @Module({
-  imports: [RagModule, ResidentsModule, AnnouncementsModule, PaymentsModule],
+  imports: [RagModule, ResidentsModule, AnnouncementsModule, PaymentsModule, TownsModule],
   providers: [TelegramUpdate],
 })
 export class TelegramModule {}

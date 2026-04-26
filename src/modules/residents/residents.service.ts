@@ -40,8 +40,10 @@ export class ResidentsService {
     return { deleted: true };
   }
 
-  linkTelegram(chatId: string, phone: string) {
-    return this.model.findOneAndUpdate({ phone }, { telegramChatId: chatId }, { new: true });
+  linkTelegram(chatId: string, phone: string, townId?: string) {
+    const filter: any = { phone };
+    if (townId) filter.townId = townId;
+    return this.model.findOneAndUpdate(filter, { telegramChatId: chatId }, { new: true });
   }
 
   findByTelegramChatId(telegramChatId: string) {

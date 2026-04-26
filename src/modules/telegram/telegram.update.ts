@@ -4,6 +4,7 @@ import { AnnouncementsService } from '../announcements/announcements.service';
 import { PaymentsService } from '../payments/payments.service';
 import { RagService } from '../rag/rag.service';
 import { ResidentsService } from '../residents/residents.service';
+import { TownsService } from '../towns/towns.service';
 
 @Update()
 export class TelegramUpdate {
@@ -13,6 +14,7 @@ export class TelegramUpdate {
     private residentsService: ResidentsService,
     private announcementsService: AnnouncementsService,
     private paymentsService: PaymentsService,
+    private townsService: TownsService,
   ) {}
 
   @Start()
@@ -92,20 +94,35 @@ export class TelegramUpdate {
   @Command('daftar')
   async onDaftar(@Ctx() ctx: Context): Promise<void> {
     const text = (ctx.message as any)?.text || '';
-    const phone = text.replace('/daftar', '').trim();
-    if (!phone) {
-      await ctx.reply('Format: /daftar 08xxxxxxxxxx');
+    const parts = text.replace('/daftar', '').trim().split(/\s+/);
+    const phone = parts[0];
+    const slug = parts[1];
+
+    if (!phone || !slug) {
+      await ctx.reply(
+        'Format: /daftar <nomor-hp> <slug-perumahan>\nContoh: /daftar 08123456789 griya-indah',
+      );
+      return;
+    }
+
+    let town: any;
+    try {
+      town = await this.townsService.findBySlug(slug);
+    } catch {
+      await ctx.reply(`Perumahan "${slug}" tidak ditemukan. Periksa slug perumahan kamu.`);
       return;
     }
 
     const chatId = String(ctx.from.id);
-    const resident = await this.residentsService.linkTelegram(chatId, phone);
+    const resident = await this.residentsService.linkTelegram(chatId, phone, String(town._id));
     if (!resident) {
-      await ctx.reply('Nomor HP tidak ditemukan. Hubungi pengelola perumahan.');
+      await ctx.reply('Nomor HP tidak ditemukan di perumahan tersebut. Hubungi pengelola.');
       return;
     }
 
-    await ctx.reply(`Berhasil! Akun ${resident.name} telah terhubung ke Telegram ✅`);
+    await ctx.reply(
+      `Berhasil! Akun ${resident.name} dari ${town.name} telah terhubung ke Telegram ✅`,
+    );
   }
 
   @On('text')
