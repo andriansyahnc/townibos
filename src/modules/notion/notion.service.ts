@@ -38,7 +38,7 @@ export class NotionService {
     apiKey: string,
     databaseId: string,
   ): Promise<{ townId: string; synced: number; errors: number }> {
-    const client = new Client({ auth: apiKey });
+    const client = new Client({ auth: apiKey, notionVersion: '2022-06-28' });
     const pages = await this.fetchAllPages(client, databaseId);
     let synced = 0;
     let errors = 0;
@@ -76,10 +76,10 @@ export class NotionService {
     let cursor: string | undefined;
 
     do {
-      const response = await client.dataSources.query({
-        data_source_id: databaseId,
-        start_cursor: cursor,
-        page_size: 100,
+      const response = await (client as any).request({
+        path: `databases/${databaseId}/query`,
+        method: 'post',
+        body: { start_cursor: cursor, page_size: 100 },
       });
 
       for (const page of response.results) {
