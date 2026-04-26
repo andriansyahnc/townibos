@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -22,6 +22,15 @@ export class AuthController {
     return this.service.login(body.username, body.password);
   }
 
+  @Get('admins')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin')
+  @ApiOperation({ summary: 'List all admin users (superadmin)' })
+  listAdmins() {
+    return this.service.listAdmins();
+  }
+
   @Post('admins')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -29,6 +38,24 @@ export class AuthController {
   @ApiOperation({ summary: 'Create a town admin (superadmin)' })
   createAdmin(@Body() dto: CreateAdminDto) {
     return this.service.createAdmin(dto);
+  }
+
+  @Delete('admins/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin')
+  @ApiOperation({ summary: 'Delete an admin user (superadmin)' })
+  removeAdmin(@Param('id') id: string) {
+    return this.service.removeAdmin(id);
+  }
+
+  @Patch('admins/:id/password')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin')
+  @ApiOperation({ summary: 'Change any admin password (superadmin)' })
+  changeAdminPassword(@Param('id') id: string, @Body() body: ChangePasswordDto) {
+    return this.service.changePassword(id, body.newPassword);
   }
 
   @Patch('me/password')

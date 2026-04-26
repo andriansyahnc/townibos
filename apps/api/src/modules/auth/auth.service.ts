@@ -33,6 +33,15 @@ export class AuthService {
     return this.adminModel.create({ ...dto, password: hash });
   }
 
+  listAdmins() {
+    return this.adminModel.find().select('-password').exec();
+  }
+
+  async removeAdmin(id: string) {
+    await this.adminModel.findByIdAndDelete(id);
+    return { deleted: true };
+  }
+
   async changePassword(userId: string, newPassword: string) {
     if (!newPassword) throw new BadRequestException('newPassword is required');
     const hash = await bcrypt.hash(newPassword, 10);

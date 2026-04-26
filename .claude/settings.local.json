@@ -23,7 +23,13 @@
       "Bash(pnpm exec *)",
       "Bash(xargs sed *)",
       "Bash(git mv *)",
-      "Bash(pnpm create *)"
+      "Bash(pnpm create *)",
+      "Bash(pnpm dlx *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm run *)",
+      "Bash(curl -s http://localhost:3001 -o /dev/null -w \"%{http_code}\")",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(curl -s http://localhost:3001/login -o /dev/null -w \"%{http_code}\")"
     ]
   }
 }
