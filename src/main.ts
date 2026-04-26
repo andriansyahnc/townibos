@@ -9,6 +9,8 @@ export function buildSwaggerDocument(app: any) {
     .setTitle('Townibos API')
     .setDescription('Residential complex (perumahan) CRM — REST API')
     .setVersion('1.0')
+    .addServer('http://localhost:3000', 'Local')
+    .addServer('https://townibos-uekk-production.up.railway.app', 'Production')
     .addBearerAuth()
     .build();
   return SwaggerModule.createDocument(app, config);
