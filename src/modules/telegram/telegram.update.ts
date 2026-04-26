@@ -16,7 +16,7 @@ export class TelegramUpdate {
   ) {}
 
   @Start()
-  async onStart(@Ctx() ctx: Context) {
+  async onStart(@Ctx() ctx: Context): Promise<void> {
     await ctx.reply(
       `Halo! Selamat datang di bot Townibos 🏘️\n\n` +
         `Perintah yang tersedia:\n` +
@@ -28,28 +28,38 @@ export class TelegramUpdate {
   }
 
   @Command('pengumuman')
-  async onPengumuman(@Ctx() ctx: Context) {
+  async onPengumuman(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
-    if (!resident)
-      return ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+    if (!resident) {
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+      return;
+    }
 
     const announcements = await this.announcementsService.getLatest(resident.townId.toString(), 3);
-    if (!announcements.length) return ctx.reply('Tidak ada pengumuman terbaru.');
+    if (!announcements.length) {
+      await ctx.reply('Tidak ada pengumuman terbaru.');
+      return;
+    }
 
     const text = announcements.map((a) => `📢 *${a.title}*\n${a.body}`).join('\n\n---\n\n');
     await ctx.replyWithMarkdown(text);
   }
 
   @Command('tagihan')
-  async onTagihan(@Ctx() ctx: Context) {
+  async onTagihan(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
-    if (!resident)
-      return ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+    if (!resident) {
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+      return;
+    }
 
     const payments = await this.paymentsService.getResidentPayments(String(resident._id));
     const pending = payments.filter((p) => p.status !== 'paid');
 
-    if (!pending.length) return ctx.reply('Semua tagihan sudah lunas ✅');
+    if (!pending.length) {
+      await ctx.reply('Semua tagihan sudah lunas ✅');
+      return;
+    }
 
     const text = pending
       .map(
@@ -60,14 +70,19 @@ export class TelegramUpdate {
   }
 
   @Command('tanya')
-  async onTanya(@Ctx() ctx: Context) {
+  async onTanya(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
-    if (!resident)
-      return ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+    if (!resident) {
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+      return;
+    }
 
     const text = (ctx.message as any)?.text || '';
     const question = text.replace('/tanya', '').trim();
-    if (!question) return ctx.reply('Contoh: /tanya Bolehkah memelihara kucing di unit?');
+    if (!question) {
+      await ctx.reply('Contoh: /tanya Bolehkah memelihara kucing di unit?');
+      return;
+    }
 
     await ctx.reply('Mencari jawaban... ⏳');
     const answer = await this.ragService.query(question, resident.townId.toString());
@@ -75,26 +90,34 @@ export class TelegramUpdate {
   }
 
   @Command('daftar')
-  async onDaftar(@Ctx() ctx: Context) {
+  async onDaftar(@Ctx() ctx: Context): Promise<void> {
     const text = (ctx.message as any)?.text || '';
     const phone = text.replace('/daftar', '').trim();
-    if (!phone) return ctx.reply('Format: /daftar 08xxxxxxxxxx');
+    if (!phone) {
+      await ctx.reply('Format: /daftar 08xxxxxxxxxx');
+      return;
+    }
 
     const chatId = String(ctx.from.id);
     const resident = await this.residentsService.linkTelegram(chatId, phone);
-    if (!resident) return ctx.reply('Nomor HP tidak ditemukan. Hubungi pengelola perumahan.');
+    if (!resident) {
+      await ctx.reply('Nomor HP tidak ditemukan. Hubungi pengelola perumahan.');
+      return;
+    }
 
     await ctx.reply(`Berhasil! Akun ${resident.name} telah terhubung ke Telegram ✅`);
   }
 
   @On('text')
-  async onText(@Ctx() ctx: Context) {
+  async onText(@Ctx() ctx: Context): Promise<void> {
     const text = (ctx.message as any)?.text || '';
     if (text.startsWith('/')) return;
 
     const resident = await this.getResidentByChat(ctx);
-    if (!resident)
-      return ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+    if (!resident) {
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+      return;
+    }
 
     await ctx.reply('Mencari jawaban... ⏳');
     const answer = await this.ragService.query(text, resident.townId.toString());

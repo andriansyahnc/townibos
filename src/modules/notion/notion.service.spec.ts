@@ -39,7 +39,7 @@ const mockBlocksList = jest.fn().mockResolvedValue({
 
 jest.mock('@notionhq/client', () => ({
   Client: jest.fn().mockImplementation(() => ({
-    databases: { query: mockDatabasesQuery },
+    dataSources: { query: mockDatabasesQuery },
     blocks: { children: { list: mockBlocksList } },
   })),
   isFullPage: jest.fn().mockReturnValue(true),

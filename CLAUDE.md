@@ -214,10 +214,16 @@ The SDK uses ESM default export. Without the flag, `_sdk.default is not a constr
 jest.mock('@anthropic-ai/sdk', () => ({ __esModule: true, default: jest.fn().mockImplementation(...) }));
 ```
 
-### `@notionhq/client` — cast `client as any` for `databases.query`
+### `@notionhq/client` v5 — `dataSources.query`, not `databases.query`
 
-The TypeScript types don't expose `databases.query` on the `Client` class directly. Cast when calling:
+In v5 of the SDK, `databases.query` was removed. Use `client.dataSources.query` with `data_source_id` instead of `database_id`. No cast needed — the method is typed:
 
 ```ts
-await (client as any).databases.query({ database_id: id, ... });
+await client.dataSources.query({ data_source_id: id, start_cursor: cursor, page_size: 100 });
 ```
+
+The mock in specs must use `dataSources: { query: mockFn }` (not `databases`).
+
+### Telegraf handler return types — always annotate `Promise<void>`
+
+With pnpm's virtual store paths, TypeScript TS2883 fires when handler return types reference `TextMessage` from `@telegraf/types`. Fix: annotate every `@Command`/`@On`/`@Start` method with `: Promise<void>` and replace `return ctx.reply(...)` with `await ctx.reply(...); return`.
