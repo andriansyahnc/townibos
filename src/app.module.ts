@@ -3,15 +3,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TelegrafModule } from 'nestjs-telegraf';
 import configuration from './config/configuration';
-import { AuthModule } from './modules/auth/auth.module';
-import { ResidentsModule } from './modules/residents/residents.module';
-import { UnitsModule } from './modules/units/units.module';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
-import { PaymentsModule } from './modules/payments/payments.module';
-import { RegulationsModule } from './modules/regulations/regulations.module';
-import { TelegramModule } from './modules/telegram/telegram.module';
-import { RagModule } from './modules/rag/rag.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { NotionModule } from './modules/notion/notion.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { RagModule } from './modules/rag/rag.module';
+import { RegulationsModule } from './modules/regulations/regulations.module';
+import { ResidentsModule } from './modules/residents/residents.module';
+import { TelegramModule } from './modules/telegram/telegram.module';
+import { UnitsModule } from './modules/units/units.module';
 
 @Module({
   imports: [

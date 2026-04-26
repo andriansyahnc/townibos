@@ -1,11 +1,23 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Client, isFullPage, isFullBlock } from '@notionhq/client';
-import { BlockObjectResponse, PageObjectResponse, RichTextItemResponse } from '@notionhq/client/build/src/api-endpoints';
-import { RegulationsService } from '../regulations/regulations.service';
+import { Client, isFullBlock, isFullPage } from '@notionhq/client';
+import {
+  BlockObjectResponse,
+  PageObjectResponse,
+  RichTextItemResponse,
+} from '@notionhq/client/build/src/api-endpoints';
 import { RagService } from '../rag/rag.service';
+import { RegulationsService } from '../regulations/regulations.service';
 
-const VALID_CATEGORIES = ['tata_tertib', 'iuran', 'fasilitas', 'parkir', 'hewan', 'renovasi', 'lainnya'];
+const VALID_CATEGORIES = [
+  'tata_tertib',
+  'iuran',
+  'fasilitas',
+  'parkir',
+  'hewan',
+  'renovasi',
+  'lainnya',
+];
 
 @Injectable()
 export class NotionService implements OnModuleInit {

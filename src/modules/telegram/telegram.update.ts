@@ -1,9 +1,9 @@
 import { Command, Ctx, InjectBot, On, Start, Update } from 'nestjs-telegraf';
 import { Context, Telegraf } from 'telegraf';
-import { RagService } from '../rag/rag.service';
-import { ResidentsService } from '../residents/residents.service';
 import { AnnouncementsService } from '../announcements/announcements.service';
 import { PaymentsService } from '../payments/payments.service';
+import { RagService } from '../rag/rag.service';
+import { ResidentsService } from '../residents/residents.service';
 
 @Update()
 export class TelegramUpdate {
@@ -33,9 +33,7 @@ export class TelegramUpdate {
     if (!announcements.length) {
       return ctx.reply('Tidak ada pengumuman terbaru.');
     }
-    const text = announcements
-      .map((a) => `📢 *${a.title}*\n${a.body}`)
-      .join('\n\n---\n\n');
+    const text = announcements.map((a) => `📢 *${a.title}*\n${a.body}`).join('\n\n---\n\n');
     await ctx.replyWithMarkdown(text);
   }
 
@@ -58,7 +56,9 @@ export class TelegramUpdate {
     }
 
     const text = pending
-      .map((p) => `💰 ${p.type} — ${p.period}: Rp ${p.amount.toLocaleString('id-ID')} (${p.status})`)
+      .map(
+        (p) => `💰 ${p.type} — ${p.period}: Rp ${p.amount.toLocaleString('id-ID')} (${p.status})`,
+      )
       .join('\n');
     await ctx.reply(`Tagihan belum lunas:\n${text}`);
   }

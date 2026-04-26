@@ -7,7 +7,18 @@
     "start": "node dist/main",
     "start:dev": "nodemon --watch src --ext ts --exec ts-node -r tsconfig-paths/register src/main.ts",
     "start:debug": "ts-node -r tsconfig-paths/register src/main.ts",
-    "test": "jest"
+    "test": "jest",
+    "lint": "biome lint ./src",
+    "lint:fix": "biome lint --write ./src",
+    "format": "biome format --write ./src",
+    "check": "biome check ./src",
+    "check:fix": "biome check --write ./src",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -34,13 +45,16 @@
     "telegraf": "^4.16.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@nestjs/cli": "^11.0.21",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.1.19",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.6.0",
     "@types/passport-jwt": "^4.0.1",
+    "husky": "^9.1.7",
     "jest": "^30.3.0",
+    "lint-staged": "^16.4.0",
     "nodemon": "^3.1.14",
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",

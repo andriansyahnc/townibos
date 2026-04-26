@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Resident, ResidentDocument } from './resident.schema';
 import { CreateResidentDto } from './dto/create-resident.dto';
+import { Resident, ResidentDocument } from './resident.schema';
 
 @Injectable()
 export class ResidentsService {

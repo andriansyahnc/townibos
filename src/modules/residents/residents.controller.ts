@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ResidentsService } from './residents.service';
 import { CreateResidentDto } from './dto/create-resident.dto';
+import { ResidentsService } from './residents.service';
 
 @Controller('residents')
 export class ResidentsController {

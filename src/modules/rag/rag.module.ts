@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { RagService } from './rag.service';
-import { RagController } from './rag.controller';
 import { RegulationsModule } from '../regulations/regulations.module';
+import { RagController } from './rag.controller';
+import { RagService } from './rag.service';
 
 @Module({
   imports: [RegulationsModule],

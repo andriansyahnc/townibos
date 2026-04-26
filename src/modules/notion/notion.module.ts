@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { NotionService } from './notion.service';
-import { NotionController } from './notion.controller';
-import { RegulationsModule } from '../regulations/regulations.module';
 import { RagModule } from '../rag/rag.module';
+import { RegulationsModule } from '../regulations/regulations.module';
+import { NotionController } from './notion.controller';
+import { NotionService } from './notion.service';
 
 @Module({
   imports: [RegulationsModule, RagModule],

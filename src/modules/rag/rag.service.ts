@@ -1,6 +1,6 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Anthropic from '@anthropic-ai/sdk';
 import { RegulationsService } from '../regulations/regulations.service';
 
 @Injectable()
