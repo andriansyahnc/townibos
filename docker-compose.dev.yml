@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      target: builder
+    command: npm run start:dev
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/townibos
+      NODE_ENV: development
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6-jammy
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

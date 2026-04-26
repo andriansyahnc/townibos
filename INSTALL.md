@@ -70,21 +70,46 @@ NOTION_DATABASE_ID=<32-char ID from your database URL>
 
 Once configured, fill each Notion page with the regulation content. The page body supports headings, bullet lists, and numbered lists.
 
-## 3. Start MongoDB
+## 3. Run with Docker (recommended)
 
-**Local (macOS with Homebrew):**
+This is the easiest way to get the full stack running. Docker Compose handles MongoDB automatically — no separate install needed.
+
+```bash
+cp .env.example .env   # fill in TELEGRAM_BOT_TOKEN, ANTHROPIC_API_KEY, NOTION_* keys
+```
+
+**Development** (hot-reload, source files mounted):
+```bash
+npm run docker:dev
+# or: docker compose -f docker-compose.dev.yml up --build
+```
+
+**Production** (compiled image):
+```bash
+npm run docker:prod
+# or: docker compose up --build
+```
+
+**Stop and remove containers:**
+```bash
+npm run docker:down
+# add -v to also delete the MongoDB volume: docker compose down -v
+```
+
+> `MONGODB_URI` is automatically overridden inside Docker to `mongodb://mongo:27017/townibos` — you don't need to set it in `.env` when using Docker Compose.
+
+MongoDB data is persisted in a named volume (`mongo_data`). It survives container restarts but is removed with `docker compose down -v`.
+
+## 3a. Run without Docker
+
+**Start MongoDB locally (macOS with Homebrew):**
 ```bash
 brew services start mongodb-community
 ```
 
-**Docker:**
-```bash
-docker run -d -p 27017:27017 --name townibos-mongo mongo:6
-```
-
 **MongoDB Atlas:** update `MONGODB_URI` in `.env` with your Atlas connection string.
 
-## 4. Run the application
+## 4. Run the application (without Docker)
 
 ```bash
 # Development (hot-reload)

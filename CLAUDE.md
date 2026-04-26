@@ -20,7 +20,14 @@ npx tsc --noEmit
 npm test                # jest
 ```
 
-No lint script is configured yet — add eslint if needed.
+# Lint / format (Biome)
+npm run check          # lint + format check
+npm run check:fix      # auto-fix lint + format
+
+# Docker
+npm run docker:dev     # dev stack with hot-reload (mounts ./src)
+npm run docker:prod    # production stack (compiled image)
+npm run docker:down    # stop and remove containers
 
 ## Architecture
 
