@@ -25,7 +25,7 @@ export class TelegramUpdate {
         `/pengumuman — Lihat pengumuman terbaru\n` +
         `/tagihan — Cek tagihan iuran\n` +
         `/tanya [pertanyaan] — Tanya peraturan perumahan\n` +
-        `/daftar [nomor HP] — Daftarkan akun Telegram kamu`,
+        `/daftar [nomor HP] [id perumahan] — Daftarkan akun Telegram kamu`,
     );
   }
 
@@ -100,7 +100,7 @@ export class TelegramUpdate {
 
     if (!phone || !slug) {
       await ctx.reply(
-        'Format: /daftar <nomor-hp> <slug-perumahan>\nContoh: /daftar 08123456789 griya-indah',
+        'Format: /daftar <nomor-hp> <id-perumahan>\nContoh: /daftar 08123456789 griya-indah',
       );
       return;
     }
@@ -109,14 +109,14 @@ export class TelegramUpdate {
     try {
       town = await this.townsService.findBySlug(slug);
     } catch {
-      await ctx.reply(`Perumahan "${slug}" tidak ditemukan. Periksa slug perumahan kamu.`);
+      await ctx.reply('ID perumahan tidak ditemukan. Silahkan tanya admin.');
       return;
     }
 
     const chatId = String(ctx.from.id);
     const resident = await this.residentsService.linkTelegram(chatId, phone, String(town._id));
     if (!resident) {
-      await ctx.reply('Nomor HP tidak ditemukan di perumahan tersebut. Hubungi pengelola.');
+      await ctx.reply('Nomor HP tidak ditemukan. Silahkan tanya admin.');
       return;
     }
 
