@@ -101,7 +101,7 @@ describe('PaymentsService', () => {
       expect(mockModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'pay-1',
         expect.objectContaining({ status: 'paid', paidAt: expect.any(Date) }),
-        { new: true },
+        { returnDocument: 'after' },
       );
       expect(result.status).toBe('paid');
     });

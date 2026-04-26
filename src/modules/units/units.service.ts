@@ -24,7 +24,7 @@ export class UnitsService {
   async update(id: string, dto: Partial<Unit>, townId?: string) {
     const filter: any = { _id: id };
     if (townId) filter.townId = townId;
-    const unit = await this.model.findOneAndUpdate(filter, dto, { new: true });
+    const unit = await this.model.findOneAndUpdate(filter, dto, { returnDocument: 'after' });
     if (!unit) throw new NotFoundException(`Unit ${id} not found`);
     return unit;
   }

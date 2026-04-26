@@ -108,7 +108,7 @@ describe('RegulationsService', () => {
       expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
         { _id: 'reg-1' },
         { title: 'Updated' },
-        { new: true },
+        { returnDocument: 'after' },
       );
       expect(result.title).toBe('Updated');
     });
@@ -121,7 +121,7 @@ describe('RegulationsService', () => {
       expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
         { _id: 'reg-1', townId: 'town-1' },
         { title: 'Updated' },
-        { new: true },
+        { returnDocument: 'after' },
       );
     });
 
@@ -176,7 +176,7 @@ describe('RegulationsService', () => {
     expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
       { notionPageId: 'notion-page-1' },
       { $set: { title: 'New' } },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     );
   });
 
@@ -189,7 +189,7 @@ describe('RegulationsService', () => {
     expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
       { _id: 'reg-1' },
       { embedding },
-      { new: true },
+      { returnDocument: 'after' },
     );
     expect(result.embedding).toEqual(embedding);
   });

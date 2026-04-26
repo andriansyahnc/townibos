@@ -82,7 +82,7 @@ describe('ResidentsService', () => {
       expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
         { _id: 'r1' },
         { name: 'Budi Updated' },
-        { new: true },
+        { returnDocument: 'after' },
       );
       expect(result.name).toBe('Budi Updated');
     });
@@ -95,7 +95,7 @@ describe('ResidentsService', () => {
       expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
         { _id: 'r1', townId: 'town-1' },
         { name: 'Budi' },
-        { new: true },
+        { returnDocument: 'after' },
       );
     });
 
@@ -141,7 +141,7 @@ describe('ResidentsService', () => {
       expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
         { phone: '081234567890' },
         { telegramChatId: '12345' },
-        { new: true },
+        { returnDocument: 'after' },
       );
       expect(result.telegramChatId).toBe('12345');
     });

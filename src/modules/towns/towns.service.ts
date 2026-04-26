@@ -37,7 +37,7 @@ export class TownsService {
   async update(id: string, dto: Partial<Town>) {
     const data = { ...dto };
     if (data.notionApiKey) data.notionApiKey = this.encryption.encrypt(data.notionApiKey);
-    const doc = await this.model.findByIdAndUpdate(id, data, { new: true });
+    const doc = await this.model.findByIdAndUpdate(id, data, { returnDocument: 'after' });
     if (!doc) throw new NotFoundException(`Town ${id} not found`);
     return this.decryptTown(doc);
   }

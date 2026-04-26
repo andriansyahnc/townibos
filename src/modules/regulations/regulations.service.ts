@@ -27,7 +27,7 @@ export class RegulationsService {
   async update(id: string, dto: Partial<Regulation>, townId?: string) {
     const filter: any = { _id: id };
     if (townId) filter.townId = townId;
-    const doc = await this.model.findOneAndUpdate(filter, dto, { new: true });
+    const doc = await this.model.findOneAndUpdate(filter, dto, { returnDocument: 'after' });
     if (!doc) throw new NotFoundException(`Regulation ${id} not found`);
     return doc;
   }
@@ -48,11 +48,11 @@ export class RegulationsService {
     return this.model.findOneAndUpdate(
       { notionPageId },
       { $set: dto },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     );
   }
 
   async saveEmbedding(id: string, embedding: number[]) {
-    return this.model.findOneAndUpdate({ _id: id }, { embedding }, { new: true });
+    return this.model.findOneAndUpdate({ _id: id }, { embedding }, { returnDocument: 'after' });
   }
 }

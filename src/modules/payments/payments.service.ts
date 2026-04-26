@@ -25,7 +25,7 @@ export class PaymentsService {
     const doc = await this.model.findByIdAndUpdate(
       id,
       { status: 'paid', paidAt: new Date() },
-      { new: true },
+      { returnDocument: 'after' },
     );
     if (!doc) throw new NotFoundException(`Payment ${id} not found`);
     return doc;

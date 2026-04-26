@@ -27,7 +27,7 @@ export class ResidentsService {
   async update(id: string, dto: Partial<CreateResidentDto>, townId?: string) {
     const filter: any = { _id: id };
     if (townId) filter.townId = townId;
-    const resident = await this.model.findOneAndUpdate(filter, dto, { new: true });
+    const resident = await this.model.findOneAndUpdate(filter, dto, { returnDocument: 'after' });
     if (!resident) throw new NotFoundException(`Resident ${id} not found`);
     return resident;
   }
@@ -43,14 +43,18 @@ export class ResidentsService {
   linkTelegram(chatId: string, phone: string, townId?: string) {
     const filter: any = { phone };
     if (townId) filter.townId = townId;
-    return this.model.findOneAndUpdate(filter, { telegramChatId: chatId }, { new: true });
+    return this.model.findOneAndUpdate(
+      filter,
+      { telegramChatId: chatId },
+      { returnDocument: 'after' },
+    );
   }
 
   async linkOrCreateTelegram(chatId: string, phone: string, townId: string, name: string) {
     const existing = await this.model.findOneAndUpdate(
       { phone, townId },
       { telegramChatId: chatId },
-      { new: true },
+      { returnDocument: 'after' },
     );
     if (existing) return { resident: existing, created: false };
 

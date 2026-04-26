@@ -90,7 +90,7 @@ describe('UnitsService', () => {
       expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
         { _id: 'unit-1' },
         { status: 'vacant' },
-        { new: true },
+        { returnDocument: 'after' },
       );
       expect(result.status).toBe('vacant');
     });
@@ -103,7 +103,7 @@ describe('UnitsService', () => {
       expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
         { _id: 'unit-1', townId: 'town-1' },
         {},
-        { new: true },
+        { returnDocument: 'after' },
       );
     });
 

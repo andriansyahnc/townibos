@@ -36,7 +36,11 @@ export class AuthService {
   async changePassword(userId: string, newPassword: string) {
     if (!newPassword) throw new BadRequestException('newPassword is required');
     const hash = await bcrypt.hash(newPassword, 10);
-    return this.adminModel.findByIdAndUpdate(userId, { password: hash }, { new: true });
+    return this.adminModel.findByIdAndUpdate(
+      userId,
+      { password: hash },
+      { returnDocument: 'after' },
+    );
   }
 
   async changePasswordByUsername(username: string, newPassword: string) {
@@ -44,6 +48,10 @@ export class AuthService {
     const user = await this.adminModel.findOne({ username }).select('+password');
     if (!user) throw new UnauthorizedException(`User "${username}" not found`);
     const hash = await bcrypt.hash(newPassword, 10);
-    return this.adminModel.findByIdAndUpdate(user._id, { password: hash }, { new: true });
+    return this.adminModel.findByIdAndUpdate(
+      user._id,
+      { password: hash },
+      { returnDocument: 'after' },
+    );
   }
 }
