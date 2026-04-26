@@ -2,6 +2,26 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Working Principles
+
+### Think before working
+Read the affected files and understand the existing pattern before writing a single line. If the task touches multiple modules, trace the call chain end-to-end first. A wrong mental model produces code that passes review but breaks in production.
+
+### Keep CLAUDE.md current
+Update this file whenever you discover a new pattern, fix a non-obvious bug, add a module, or change a toolchain detail. Future instances have no memory of this session — this file is the only durable knowledge transfer. Update the relevant section in-place; do not append stale duplicates.
+
+Triggers that warrant an update:
+- New module added to AppModule
+- New env var introduced
+- Bug fixed whose root cause is non-obvious
+- A gotcha hit for the first time (mock shape, route order, type cast, etc.)
+- Architecture decision made (e.g. choosing not to use a vector DB)
+
+### Remove dead code
+If code is no longer called — a method, import, env var, or entire file — delete it. Dead code misleads future readers and causes false positives in search. Confirm nothing calls it (grep + check all consumers) before deleting.
+
+---
+
 ## Commands
 
 ```bash
