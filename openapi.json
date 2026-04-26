@@ -36,6 +36,51 @@
         ]
       }
     },
+    "/api/v1/auth/me/password": {
+      "patch": {
+        "operationId": "AuthController_changeOwnPassword",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change own password (logged-in user)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/password": {
+      "patch": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "ADMIN_API_KEY from server config",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Reset any admin password by username (API key required)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/towns": {
       "post": {
         "operationId": "TownsController_create",
@@ -930,7 +975,12 @@
     "contact": {}
   },
   "tags": [],
-  "servers": [],
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
   "components": {
     "securitySchemes": {
       "bearer": {

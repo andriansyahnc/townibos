@@ -41,6 +41,7 @@ async function generate() {
 
   const config = new DocumentBuilder()
     .setTitle('Townibos API')
+    .addServer('http://localhost:3000', 'Local development server')
     .setDescription('Residential complex (perumahan) CRM — REST API')
     .setVersion('1.0')
     .addBearerAuth()

@@ -15,11 +15,11 @@ const mockAdminUser = {
   isActive: true,
 };
 
+const selectMock = jest.fn();
 const mockModel = {
-  findOne: jest.fn(),
+  findOne: jest.fn().mockReturnValue({ select: selectMock }),
   create: jest.fn(),
   findByIdAndUpdate: jest.fn(),
-  _id: 'user-id-1',
 };
 
 const mockJwtService = {
@@ -40,11 +40,13 @@ describe('AuthService', () => {
 
     service = module.get(AuthService);
     jest.clearAllMocks();
+    // Re-wire chain after clearAllMocks resets mockReturnValue
+    mockModel.findOne.mockReturnValue({ select: selectMock });
   });
 
   describe('login', () => {
     it('returns an access token for valid credentials', async () => {
-      mockModel.findOne.mockResolvedValue(mockAdminUser);
+      selectMock.mockResolvedValue(mockAdminUser);
 
       const result = await service.login('admin1', 'secret');
 
@@ -58,20 +60,20 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException for wrong password', async () => {
-      mockModel.findOne.mockResolvedValue(mockAdminUser);
+      selectMock.mockResolvedValue(mockAdminUser);
 
       await expect(service.login('admin1', 'wrongpass')).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws UnauthorizedException when user not found', async () => {
-      mockModel.findOne.mockResolvedValue(null);
+      selectMock.mockResolvedValue(null);
 
       await expect(service.login('nobody', 'any')).rejects.toThrow(UnauthorizedException);
     });
 
     it('includes null townId in token for superadmin', async () => {
       const superadmin = { ...mockAdminUser, role: 'superadmin', townId: null };
-      mockModel.findOne.mockResolvedValue(superadmin);
+      selectMock.mockResolvedValue(superadmin);
 
       await service.login('superadmin', 'secret');
 
@@ -106,7 +108,7 @@ describe('AuthService', () => {
 
   describe('changePasswordByUsername', () => {
     it('finds user by username and updates the password', async () => {
-      mockModel.findOne.mockResolvedValue({ ...mockAdminUser, _id: 'user-id-1' });
+      selectMock.mockResolvedValue({ ...mockAdminUser, _id: 'user-id-1' });
       mockModel.findByIdAndUpdate.mockResolvedValue({ _id: 'user-id-1' });
 
       await service.changePasswordByUsername('admin1', 'newpassword');
@@ -117,7 +119,7 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException when username not found', async () => {
-      mockModel.findOne.mockResolvedValue(null);
+      selectMock.mockResolvedValue(null);
 
       await expect(service.changePasswordByUsername('nobody', 'pass')).rejects.toThrow(
         UnauthorizedException,

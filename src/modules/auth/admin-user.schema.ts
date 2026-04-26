@@ -8,7 +8,7 @@ export class AdminUser {
   @Prop({ required: true, unique: true })
   username: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, select: false })
   password: string; // bcrypt hash
 
   @Prop({ enum: ['superadmin', 'admin'], required: true })
