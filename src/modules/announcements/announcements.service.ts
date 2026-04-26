@@ -11,8 +11,10 @@ export class AnnouncementsService {
     return this.model.create(dto);
   }
 
-  findAll() {
-    return this.model.find().sort({ createdAt: -1 }).exec();
+  findAll(townId?: string) {
+    const filter: any = {};
+    if (townId) filter.townId = townId;
+    return this.model.find(filter).sort({ createdAt: -1 }).exec();
   }
 
   async findOne(id: string) {

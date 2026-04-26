@@ -47,6 +47,7 @@ jest.mock('@notionhq/client', () => ({
 
 describe('NotionService', () => {
   let service: NotionService;
+  let townsService: jest.Mocked<TownsService>;
   let regulationsService: jest.Mocked<RegulationsService>;
   let ragService: jest.Mocked<RagService>;
 
@@ -73,6 +74,7 @@ describe('NotionService', () => {
     }).compile();
 
     service = module.get(NotionService);
+    townsService = module.get(TownsService);
     regulationsService = module.get(RegulationsService);
     ragService = module.get(RagService);
     jest.clearAllMocks();
@@ -155,6 +157,8 @@ describe('NotionService', () => {
         '1. Step',
       ],
       ['quote', { quote: { rich_text: [{ plain_text: 'Note' }] } }, '> Note'],
+      ['callout', { callout: { rich_text: [{ plain_text: 'Info' }] } }, 'Info'],
+      ['toggle', { toggle: { rich_text: [{ plain_text: 'Details' }] } }, 'Details'],
       ['divider', {}, '---'],
       [
         'to_do checked',
@@ -180,6 +184,16 @@ describe('NotionService', () => {
 
       const upsertCall = regulationsService.upsertByNotionPageId.mock.calls[0][1];
       expect(upsertCall.content).toBe(expected);
+    });
+  });
+
+  describe('syncOne', () => {
+    it('syncs a single town by id and refreshes RAG context', async () => {
+      const result = await service.syncOne('town-1');
+
+      expect(townsService.findOne).toHaveBeenCalledWith('town-1');
+      expect(result).toEqual({ townId: 'town-1', synced: 2, errors: 0 });
+      expect(ragService.refreshContext).toHaveBeenCalledWith('town-1');
     });
   });
 

@@ -11,8 +11,9 @@ export class RegulationsService {
     return this.model.create(dto);
   }
 
-  findAll(townId: string, category?: string) {
-    const filter: any = { townId };
+  findAll(townId?: string, category?: string) {
+    const filter: any = {};
+    if (townId) filter.townId = townId;
     if (category) filter.category = category;
     return this.model.find(filter).exec();
   }

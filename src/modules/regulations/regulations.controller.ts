@@ -1,18 +1,35 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { RegulationsService } from './regulations.service';
 
 @Controller('regulations')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('superadmin', 'admin')
 export class RegulationsController {
   constructor(private readonly service: RegulationsService) {}
 
   @Post()
-  create(@Body() dto: any) {
+  create(@Body() dto: any, @CurrentUser() user: CurrentUserPayload) {
+    if (user.role === 'admin') dto = { ...dto, townId: user.townId };
     return this.service.create(dto);
   }
 
   @Get()
-  findAll(@Query('category') category?: string) {
-    return this.service.findAll(category);
+  findAll(@CurrentUser() user: CurrentUserPayload, @Query('category') category?: string) {
+    return this.service.findAll(user.role === 'admin' ? user.townId : undefined, category);
   }
 
   @Get(':id')

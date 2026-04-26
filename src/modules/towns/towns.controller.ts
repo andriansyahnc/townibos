@@ -11,27 +11,34 @@ export class TownsController {
   constructor(private readonly service: TownsService) {}
 
   @Post()
-  create(@Body() dto: any) {
-    return this.service.create(dto);
+  async create(@Body() dto: any) {
+    return this.mask(await this.service.create(dto));
   }
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  async findAll() {
+    return (await this.service.findAll()).map((t) => this.mask(t));
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return this.mask(await this.service.findOne(id));
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: any) {
-    return this.service.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: any) {
+    return this.mask(await this.service.update(id, dto));
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(id);
+  }
+
+  private mask(town: any) {
+    if (!town) return town;
+    const obj = town.toObject ? town.toObject() : { ...town };
+    if (obj.notionApiKey) obj.notionApiKey = 'secret_****';
+    return obj;
   }
 }

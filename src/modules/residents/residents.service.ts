@@ -12,8 +12,10 @@ export class ResidentsService {
     return this.model.create(dto);
   }
 
-  findAll() {
-    return this.model.find().populate('unitId').exec();
+  findAll(townId?: string) {
+    const filter: any = {};
+    if (townId) filter.townId = townId;
+    return this.model.find(filter).populate('unitId').exec();
   }
 
   async findOne(id: string) {

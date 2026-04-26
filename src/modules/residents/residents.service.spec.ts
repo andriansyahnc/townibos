@@ -39,6 +39,22 @@ describe('ResidentsService', () => {
     mockModel.findOne.mockReturnValue({ exec: execMock });
   });
 
+  it('finds all residents without townId filter for superadmin', async () => {
+    execMock.mockResolvedValue([mockResident]);
+
+    await service.findAll();
+
+    expect(mockModel.find).toHaveBeenCalledWith({});
+  });
+
+  it('scopes findAll by townId for admin', async () => {
+    execMock.mockResolvedValue([mockResident]);
+
+    await service.findAll('town-1');
+
+    expect(mockModel.find).toHaveBeenCalledWith({ townId: 'town-1' });
+  });
+
   it('creates a resident', async () => {
     mockModel.create.mockResolvedValue(mockResident);
 
@@ -55,6 +71,44 @@ describe('ResidentsService', () => {
     execMock.mockResolvedValue(null);
 
     await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+  });
+
+  describe('update', () => {
+    it('updates and returns the resident', async () => {
+      const updated = { ...mockResident, name: 'Budi Updated' };
+      mockModel.findByIdAndUpdate.mockResolvedValue(updated);
+
+      const result = await service.update('r1', { name: 'Budi Updated' });
+
+      expect(mockModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        'r1',
+        { name: 'Budi Updated' },
+        { new: true },
+      );
+      expect(result.name).toBe('Budi Updated');
+    });
+
+    it('throws NotFoundException when resident not found', async () => {
+      mockModel.findByIdAndUpdate.mockResolvedValue(null);
+
+      await expect(service.update('bad-id', {})).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('remove', () => {
+    it('deletes a resident', async () => {
+      mockModel.findByIdAndDelete.mockResolvedValue(mockResident);
+
+      const result = await service.remove('r1');
+
+      expect(result).toEqual({ deleted: true });
+    });
+
+    it('throws NotFoundException when resident not found', async () => {
+      mockModel.findByIdAndDelete.mockResolvedValue(null);
+
+      await expect(service.remove('bad-id')).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('linkTelegram', () => {

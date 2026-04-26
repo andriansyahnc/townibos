@@ -10,6 +10,13 @@ import { NotionService } from './notion.service';
 export class NotionController {
   constructor(private readonly service: NotionService) {}
 
+  // Town admin: sync their own town — must be declared before /:townId to avoid route shadowing
+  @Post('sync/me')
+  @Roles('admin')
+  syncMine(@CurrentUser() user: CurrentUserPayload) {
+    return this.service.syncOne(user.townId);
+  }
+
   // Superadmin: sync all towns
   @Post('sync')
   @Roles('superadmin')
@@ -22,12 +29,5 @@ export class NotionController {
   @Roles('superadmin')
   syncOne(@Param('townId') townId: string) {
     return this.service.syncOne(townId);
-  }
-
-  // Town admin: sync their own town
-  @Post('sync/me')
-  @Roles('admin')
-  syncMine(@CurrentUser() user: CurrentUserPayload) {
-    return this.service.syncOne(user.townId);
   }
 }

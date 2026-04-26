@@ -18,6 +18,7 @@ const mockAdminUser = {
 const mockModel = {
   findOne: jest.fn(),
   create: jest.fn(),
+  findByIdAndUpdate: jest.fn(),
 };
 
 const mockJwtService = {
@@ -86,6 +87,19 @@ describe('AuthService', () => {
       const stored = mockModel.create.mock.calls[0][0];
       expect(stored.password).not.toBe('plaintext');
       expect(bcrypt.compareSync('plaintext', stored.password)).toBe(true);
+    });
+  });
+
+  describe('changePassword', () => {
+    it('hashes the new password and updates the user', async () => {
+      mockModel.findByIdAndUpdate.mockResolvedValue({ _id: 'user-id-1' });
+
+      await service.changePassword('user-id-1', 'newpassword');
+
+      const [id, update] = mockModel.findByIdAndUpdate.mock.calls[0];
+      expect(id).toBe('user-id-1');
+      expect(update.password).not.toBe('newpassword');
+      expect(bcrypt.compareSync('newpassword', update.password)).toBe(true);
     });
   });
 });
