@@ -18,4 +18,5 @@ export default () => ({
   encryption: {
     key: process.env.ENCRYPTION_KEY,
   },
+  adminApiKey: process.env.ADMIN_API_KEY,
 });

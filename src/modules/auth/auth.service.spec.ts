@@ -19,6 +19,7 @@ const mockModel = {
   findOne: jest.fn(),
   create: jest.fn(),
   findByIdAndUpdate: jest.fn(),
+  _id: 'user-id-1',
 };
 
 const mockJwtService = {
@@ -100,6 +101,27 @@ describe('AuthService', () => {
       expect(id).toBe('user-id-1');
       expect(update.password).not.toBe('newpassword');
       expect(bcrypt.compareSync('newpassword', update.password)).toBe(true);
+    });
+  });
+
+  describe('changePasswordByUsername', () => {
+    it('finds user by username and updates the password', async () => {
+      mockModel.findOne.mockResolvedValue({ ...mockAdminUser, _id: 'user-id-1' });
+      mockModel.findByIdAndUpdate.mockResolvedValue({ _id: 'user-id-1' });
+
+      await service.changePasswordByUsername('admin1', 'newpassword');
+
+      expect(mockModel.findOne).toHaveBeenCalledWith({ username: 'admin1' });
+      const [, update] = mockModel.findByIdAndUpdate.mock.calls[0];
+      expect(bcrypt.compareSync('newpassword', update.password)).toBe(true);
+    });
+
+    it('throws UnauthorizedException when username not found', async () => {
+      mockModel.findOne.mockResolvedValue(null);
+
+      await expect(service.changePasswordByUsername('nobody', 'pass')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 });

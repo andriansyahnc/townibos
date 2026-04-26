@@ -37,4 +37,11 @@ export class AuthService {
     const hash = await bcrypt.hash(newPassword, 10);
     return this.adminModel.findByIdAndUpdate(userId, { password: hash }, { new: true });
   }
+
+  async changePasswordByUsername(username: string, newPassword: string) {
+    const user = await this.adminModel.findOne({ username });
+    if (!user) throw new UnauthorizedException(`User "${username}" not found`);
+    const hash = await bcrypt.hash(newPassword, 10);
+    return this.adminModel.findByIdAndUpdate(user._id, { password: hash }, { new: true });
+  }
 }

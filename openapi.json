@@ -1,0 +1,1137 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Login and receive a JWT",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/admins": {
+      "post": {
+        "operationId": "AuthController_createAdmin",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a town admin (superadmin)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/towns": {
+      "post": {
+        "operationId": "TownsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTownDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a town (superadmin)",
+        "tags": [
+          "towns"
+        ]
+      },
+      "get": {
+        "operationId": "TownsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all towns (superadmin)",
+        "tags": [
+          "towns"
+        ]
+      }
+    },
+    "/api/v1/towns/{id}": {
+      "get": {
+        "operationId": "TownsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a town by id (superadmin)",
+        "tags": [
+          "towns"
+        ]
+      },
+      "patch": {
+        "operationId": "TownsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a town (superadmin)",
+        "tags": [
+          "towns"
+        ]
+      },
+      "delete": {
+        "operationId": "TownsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a town (superadmin)",
+        "tags": [
+          "towns"
+        ]
+      }
+    },
+    "/api/v1/residents": {
+      "post": {
+        "operationId": "ResidentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateResidentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a resident",
+        "tags": [
+          "residents"
+        ]
+      },
+      "get": {
+        "operationId": "ResidentsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List residents",
+        "tags": [
+          "residents"
+        ]
+      }
+    },
+    "/api/v1/residents/{id}": {
+      "get": {
+        "operationId": "ResidentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a resident by id",
+        "tags": [
+          "residents"
+        ]
+      },
+      "patch": {
+        "operationId": "ResidentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a resident",
+        "tags": [
+          "residents"
+        ]
+      },
+      "delete": {
+        "operationId": "ResidentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a resident",
+        "tags": [
+          "residents"
+        ]
+      }
+    },
+    "/api/v1/units": {
+      "post": {
+        "operationId": "UnitsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUnitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a unit",
+        "tags": [
+          "units"
+        ]
+      },
+      "get": {
+        "operationId": "UnitsController_findAll",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "occupied",
+                "vacant",
+                "maintenance"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List units",
+        "tags": [
+          "units"
+        ]
+      }
+    },
+    "/api/v1/units/{id}": {
+      "get": {
+        "operationId": "UnitsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a unit by id",
+        "tags": [
+          "units"
+        ]
+      },
+      "patch": {
+        "operationId": "UnitsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a unit",
+        "tags": [
+          "units"
+        ]
+      },
+      "delete": {
+        "operationId": "UnitsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a unit",
+        "tags": [
+          "units"
+        ]
+      }
+    },
+    "/api/v1/announcements": {
+      "post": {
+        "operationId": "AnnouncementsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAnnouncementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an announcement",
+        "tags": [
+          "announcements"
+        ]
+      },
+      "get": {
+        "operationId": "AnnouncementsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List announcements",
+        "tags": [
+          "announcements"
+        ]
+      }
+    },
+    "/api/v1/announcements/{id}": {
+      "get": {
+        "operationId": "AnnouncementsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an announcement by id",
+        "tags": [
+          "announcements"
+        ]
+      },
+      "delete": {
+        "operationId": "AnnouncementsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an announcement",
+        "tags": [
+          "announcements"
+        ]
+      }
+    },
+    "/api/v1/payments": {
+      "post": {
+        "operationId": "PaymentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a payment record",
+        "tags": [
+          "payments"
+        ]
+      },
+      "get": {
+        "operationId": "PaymentsController_findAll",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "pending",
+                "paid",
+                "overdue"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List payments",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/payments/overdue": {
+      "get": {
+        "operationId": "PaymentsController_findOverdue",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List overdue payments",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/payments/{id}": {
+      "get": {
+        "operationId": "PaymentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a payment by id",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/payments/{id}/pay": {
+      "patch": {
+        "operationId": "PaymentsController_markPaid",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark a payment as paid",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/regulations": {
+      "post": {
+        "operationId": "RegulationsController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a regulation",
+        "tags": [
+          "regulations"
+        ]
+      },
+      "get": {
+        "operationId": "RegulationsController_findAll",
+        "parameters": [
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List regulations",
+        "tags": [
+          "regulations"
+        ]
+      }
+    },
+    "/api/v1/regulations/{id}": {
+      "get": {
+        "operationId": "RegulationsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a regulation by id",
+        "tags": [
+          "regulations"
+        ]
+      },
+      "patch": {
+        "operationId": "RegulationsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a regulation",
+        "tags": [
+          "regulations"
+        ]
+      },
+      "delete": {
+        "operationId": "RegulationsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a regulation",
+        "tags": [
+          "regulations"
+        ]
+      }
+    },
+    "/api/v1/rag/query": {
+      "post": {
+        "operationId": "RagController_query",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rag"
+        ]
+      }
+    },
+    "/api/v1/rag/refresh": {
+      "post": {
+        "operationId": "RagController_refresh",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rag"
+        ]
+      }
+    },
+    "/api/v1/notion/sync/me": {
+      "post": {
+        "operationId": "NotionController_syncMine",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sync own town from Notion (admin)",
+        "tags": [
+          "notion"
+        ]
+      }
+    },
+    "/api/v1/notion/sync": {
+      "post": {
+        "operationId": "NotionController_syncAll",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sync all towns from Notion (superadmin)",
+        "tags": [
+          "notion"
+        ]
+      }
+    },
+    "/api/v1/notion/sync/{townId}": {
+      "post": {
+        "operationId": "NotionController_syncOne",
+        "parameters": [
+          {
+            "name": "townId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sync a specific town from Notion (superadmin)",
+        "tags": [
+          "notion"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Townibos API",
+    "description": "Residential complex (perumahan) CRM — REST API",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "CreateTownDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Perumahan Griya Indah"
+          },
+          "slug": {
+            "type": "string",
+            "example": "griya-indah",
+            "description": "URL-friendly unique identifier"
+          },
+          "notionApiKey": {
+            "type": "string",
+            "example": "secret_abc123...",
+            "description": "Notion internal integration token — encrypted at rest"
+          },
+          "notionDatabaseId": {
+            "type": "string",
+            "example": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "notionApiKey",
+          "notionDatabaseId"
+        ]
+      },
+      "CreateResidentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Budi Santoso"
+          },
+          "email": {
+            "type": "string",
+            "example": "budi@email.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "081234567890"
+          },
+          "unitId": {
+            "type": "string",
+            "example": "64b1f...",
+            "description": "Unit ObjectId"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "tenant"
+            ],
+            "default": "tenant"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "phone"
+        ]
+      },
+      "CreateUnitDto": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string",
+            "example": "01"
+          },
+          "block": {
+            "type": "string",
+            "example": "A"
+          },
+          "floor": {
+            "type": "number",
+            "example": 1
+          },
+          "type": {
+            "type": "string",
+            "example": "2BR",
+            "description": "Unit type label, e.g. 1BR, 2BR, Studio"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "occupied",
+              "vacant",
+              "maintenance"
+            ],
+            "default": "vacant"
+          },
+          "area": {
+            "type": "number",
+            "example": 36,
+            "description": "Floor area in m²"
+          }
+        },
+        "required": [
+          "number",
+          "block",
+          "floor",
+          "type"
+        ]
+      },
+      "CreateAnnouncementDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Kerja Bakti Minggu Ini"
+          },
+          "body": {
+            "type": "string",
+            "example": "Kerja bakti dilaksanakan pada Minggu, 27 April pukul 07.00 WIB."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "general",
+              "maintenance",
+              "payment",
+              "emergency"
+            ],
+            "default": "general"
+          },
+          "broadcastTelegram": {
+            "type": "boolean",
+            "default": false,
+            "description": "Push to Telegram when true"
+          },
+          "scheduledAt": {
+            "type": "string",
+            "example": "2026-04-27T07:00:00.000Z"
+          }
+        },
+        "required": [
+          "title",
+          "body"
+        ]
+      },
+      "CreatePaymentDto": {
+        "type": "object",
+        "properties": {
+          "residentId": {
+            "type": "string",
+            "example": "64b1f...",
+            "description": "Resident ObjectId"
+          },
+          "unitId": {
+            "type": "string",
+            "example": "64b1f...",
+            "description": "Unit ObjectId"
+          },
+          "amount": {
+            "type": "number",
+            "example": 200000,
+            "description": "Amount in IDR"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "iuran",
+              "listrik",
+              "air",
+              "parkir",
+              "lainnya"
+            ],
+            "default": "iuran"
+          },
+          "period": {
+            "type": "string",
+            "example": "2026-04",
+            "description": "Billing period in YYYY-MM format"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Terlambat 3 hari"
+          }
+        },
+        "required": [
+          "residentId",
+          "unitId",
+          "amount",
+          "period"
+        ]
+      }
+    }
+  }
+}
