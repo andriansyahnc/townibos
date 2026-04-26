@@ -1,9 +1,22 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../app.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import configuration from '../config/configuration';
+import { AuthModule } from '../modules/auth/auth.module';
 import { AuthService } from '../modules/auth/auth.service';
 
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
+    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/townibos'),
+    AuthModule,
+  ],
+})
+class SeedModule {}
+
 async function seed() {
-  const app = await NestFactory.createApplicationContext(AppModule, { logger: ['error'] });
+  const app = await NestFactory.createApplicationContext(SeedModule, { logger: ['error'] });
   const authService = app.get(AuthService);
 
   const username = process.env.SEED_SUPERADMIN_USERNAME || 'superadmin';
