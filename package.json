@@ -21,7 +21,7 @@
     "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
     "docker:prod": "docker compose up --build",
     "docker:down": "docker compose down",
-    "prepare": "husky"
+    "prepare": "node -e \"if(process.env.NODE_ENV!=='production')require('child_process').execSync('husky',{stdio:'inherit'})\""
   },
   "lint-staged": {
     "src/**/*.ts": [
