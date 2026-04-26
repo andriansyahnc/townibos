@@ -39,7 +39,7 @@ const mockBlocksList = jest.fn().mockResolvedValue({
 
 jest.mock('@notionhq/client', () => ({
   Client: jest.fn().mockImplementation(() => ({
-    dataSources: { query: mockDatabasesQuery },
+    request: mockDatabasesQuery,
     blocks: { children: { list: mockBlocksList } },
   })),
   isFullPage: jest.fn().mockReturnValue(true),
@@ -94,7 +94,7 @@ describe('NotionService', () => {
 
       await service.syncAll();
 
-      expect(Client).toHaveBeenCalledWith({ auth: 'secret_town1key' });
+      expect(Client).toHaveBeenCalledWith({ auth: 'secret_town1key', notionVersion: '2022-06-28' });
     });
 
     it('syncs each active town and refreshes RAG context', async () => {

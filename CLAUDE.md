@@ -214,15 +214,19 @@ The SDK uses ESM default export. Without the flag, `_sdk.default is not a constr
 jest.mock('@anthropic-ai/sdk', () => ({ __esModule: true, default: jest.fn().mockImplementation(...) }));
 ```
 
-### `@notionhq/client` v5 — `dataSources.query`, not `databases.query`
+### `@notionhq/client` v5 — use `client.request()` for database queries
 
-In v5 of the SDK, `databases.query` was removed. Use `client.dataSources.query` with `data_source_id` instead of `database_id`. No cast needed — the method is typed:
+In v5, `databases.query` was removed from the typed surface. `dataSources.query` is **not** a replacement — it hits `POST /data_sources/{id}/query` (a different Notion product). The correct call is via the low-level `request` method:
 
 ```ts
-await client.dataSources.query({ data_source_id: id, start_cursor: cursor, page_size: 100 });
+const response = await (client as any).request({
+  path: `databases/${databaseId}/query`,
+  method: 'post',
+  body: { start_cursor: cursor, page_size: 100 },
+});
 ```
 
-The mock in specs must use `dataSources: { query: mockFn }` (not `databases`).
+The underlying HTTP endpoint `POST /v1/databases/{id}/query` still works in the Notion API — only the typed SDK wrapper was removed.
 
 ### Telegraf handler return types — always annotate `Promise<void>`
 

@@ -944,17 +944,22 @@
       "post": {
         "operationId": "RagController_query",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRagDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Ask a question about town regulations",
+        "summary": "Ask a question about town regulations (public)",
         "tags": [
           "rag"
         ]
@@ -974,7 +979,7 @@
             "bearer": []
           }
         ],
-        "summary": "Refresh the RAG context cache for own town",
+        "summary": "Refresh the RAG context cache for own town (admin)",
         "tags": [
           "rag"
         ]
@@ -1352,6 +1357,24 @@
           "unitId",
           "amount",
           "period"
+        ]
+      },
+      "QueryRagDto": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "example": "Bolehkah memelihara kucing di unit?"
+          },
+          "townId": {
+            "type": "string",
+            "example": "64b1f...",
+            "description": "Town MongoDB ID"
+          }
+        },
+        "required": [
+          "question",
+          "townId"
         ]
       }
     }
