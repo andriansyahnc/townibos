@@ -21,14 +21,19 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.setGlobalPrefix('api/v1');
-  app.enableCors();
+
+  const config = app.get(ConfigService);
+  const corsOrigins = config.get<string>('corsOrigins');
+  app.enableCors({
+    origin: corsOrigins === '*' ? true : corsOrigins.split(',').map((o) => o.trim()),
+    credentials: true,
+  });
 
   if (process.env.NODE_ENV !== 'production') {
     const document = buildSwaggerDocument(app);
     SwaggerModule.setup('api/docs', app, document);
   }
 
-  const config = app.get(ConfigService);
   const port = config.get<number>('port');
 
   await app.listen(port);

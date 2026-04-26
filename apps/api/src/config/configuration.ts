@@ -19,4 +19,5 @@ export default () => ({
     key: process.env.ENCRYPTION_KEY,
   },
   adminApiKey: process.env.ADMIN_API_KEY,
+  corsOrigins: process.env.CORS_ORIGINS || '*',
 });
