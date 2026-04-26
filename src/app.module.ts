@@ -32,17 +32,10 @@ const telegramEnabled = !!telegramToken && !telegramToken.startsWith('your-');
       ? [
           TelegrafModule.forRootAsync({
             inject: [ConfigService],
-            useFactory: (config: ConfigService) => {
-              const webhookUrl = config.get<string>('telegram.webhookUrl');
-              return {
-                token: config.get<string>('telegram.botToken'),
-                ...(webhookUrl && {
-                  launchOptions: {
-                    webhook: { domain: webhookUrl, hookPath: '/telegram-webhook' },
-                  },
-                }),
-              };
-            },
+            useFactory: (config: ConfigService) => ({
+              token: config.get<string>('telegram.botToken'),
+              launchOptions: false,
+            }),
           }),
           TelegramModule,
         ]
