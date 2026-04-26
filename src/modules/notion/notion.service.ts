@@ -57,6 +57,9 @@ export class NotionService {
           category,
           content,
           notionPageId: page.id,
+          source: 'notion',
+          effectiveDate: new Date(page.last_edited_time),
+          status: 'aktif',
         });
 
         synced++;

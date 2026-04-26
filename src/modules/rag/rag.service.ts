@@ -21,7 +21,10 @@ export class RagService implements OnModuleInit {
   async refreshContext(townId: string) {
     const regulations = await this.regulationsService.getAllTexts(townId);
     const context = regulations
-      .map((r) => `## ${r.title} (${r.category})\n${r.content}`)
+      .map((r) => {
+        const date = r.effectiveDate ? new Date(r.effectiveDate).toLocaleDateString('id-ID') : '-';
+        return `## ${r.title} (${r.category}) [berlaku: ${date}, sumber: ${r.source}]\n${r.content}`;
+      })
       .join('\n\n---\n\n');
     this.contextCache.set(townId, context);
   }
@@ -44,6 +47,7 @@ export class RagService implements OnModuleInit {
     const systemPrompt = `Kamu adalah asisten penghuni perumahan yang ramah dan membantu.
 Jawab pertanyaan berdasarkan peraturan perumahan di bawah ini saja.
 Jika informasi tidak ada dalam peraturan, katakan dengan jujur bahwa kamu tidak tahu.
+Jika ada informasi yang berbeda atau bertentangan, gunakan yang tanggal berlakunya paling baru.
 Gunakan Bahasa Indonesia yang sopan dan mudah dipahami.
 
 # PERATURAN PERUMAHAN

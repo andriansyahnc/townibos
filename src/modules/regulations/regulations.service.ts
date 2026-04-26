@@ -11,11 +11,12 @@ export class RegulationsService {
     return this.model.create(dto);
   }
 
-  findAll(townId?: string, category?: string) {
+  findAll(townId?: string, category?: string, status?: string) {
     const filter: any = {};
     if (townId) filter.townId = townId;
     if (category) filter.category = category;
-    return this.model.find(filter).exec();
+    if (status) filter.status = status;
+    return this.model.find(filter).sort({ effectiveDate: -1 }).exec();
   }
 
   async findOne(id: string) {
@@ -41,7 +42,13 @@ export class RegulationsService {
   }
 
   getAllTexts(townId: string) {
-    return this.model.find({ townId }, { title: 1, content: 1, category: 1 }).exec();
+    return this.model
+      .find(
+        { townId, status: 'aktif' },
+        { title: 1, content: 1, category: 1, effectiveDate: 1, source: 1 },
+      )
+      .sort({ effectiveDate: -1 })
+      .exec();
   }
 
   upsertByNotionPageId(notionPageId: string, dto: Partial<Regulation>) {

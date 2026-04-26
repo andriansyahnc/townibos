@@ -17,6 +17,15 @@ export class Regulation {
   @Prop()
   category: string;
 
+  @Prop({ enum: ['notion', 'pdf', 'manual'], default: 'manual' })
+  source: string;
+
+  @Prop({ default: () => new Date() })
+  effectiveDate: Date;
+
+  @Prop({ enum: ['aktif', 'arsip'], default: 'aktif' })
+  status: string;
+
   // Notion page ID — set when synced from Notion; used as upsert key
   @Prop({ sparse: true, unique: true })
   notionPageId: string;

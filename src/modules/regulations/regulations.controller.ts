@@ -34,8 +34,13 @@ export class RegulationsController {
   @Get()
   @ApiOperation({ summary: 'List regulations' })
   @ApiQuery({ name: 'category', required: false })
-  findAll(@CurrentUser() user: CurrentUserPayload, @Query('category') category?: string) {
-    return this.service.findAll(user.role === 'admin' ? user.townId : undefined, category);
+  @ApiQuery({ name: 'status', required: false, enum: ['aktif', 'arsip'] })
+  findAll(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('category') category?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.service.findAll(user.role === 'admin' ? user.townId : undefined, category, status);
   }
 
   @Get(':id')

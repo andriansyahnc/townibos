@@ -14,9 +14,10 @@ const mockRegulation = {
 };
 
 const execMock = jest.fn();
+const sortMock = jest.fn().mockReturnValue({ exec: execMock });
 const mockModel = {
   create: jest.fn(),
-  find: jest.fn().mockReturnValue({ exec: execMock }),
+  find: jest.fn().mockReturnValue({ sort: sortMock, exec: execMock }),
   findById: jest.fn().mockReturnValue({ exec: execMock }),
   findOneAndUpdate: jest.fn(),
   findOneAndDelete: jest.fn(),
@@ -35,7 +36,7 @@ describe('RegulationsService', () => {
 
     service = module.get(RegulationsService);
     jest.clearAllMocks();
-    mockModel.find.mockReturnValue({ exec: execMock });
+    mockModel.find.mockReturnValue({ sort: sortMock, exec: execMock });
     mockModel.findById.mockReturnValue({ exec: execMock });
   });
 
@@ -55,6 +56,7 @@ describe('RegulationsService', () => {
       await service.findAll();
 
       expect(mockModel.find).toHaveBeenCalledWith({});
+      expect(sortMock).toHaveBeenCalledWith({ effectiveDate: -1 });
     });
 
     it('scopes by townId when provided', async () => {
@@ -79,6 +81,14 @@ describe('RegulationsService', () => {
       await service.findAll(undefined, 'parkir');
 
       expect(mockModel.find).toHaveBeenCalledWith({ category: 'parkir' });
+    });
+
+    it('filters by status when provided', async () => {
+      execMock.mockResolvedValue([mockRegulation]);
+
+      await service.findAll('town-1', undefined, 'arsip');
+
+      expect(mockModel.find).toHaveBeenCalledWith({ townId: 'town-1', status: 'arsip' });
     });
   });
 
@@ -157,15 +167,16 @@ describe('RegulationsService', () => {
     });
   });
 
-  it('getAllTexts projects only title, content, and category fields', async () => {
+  it('getAllTexts filters by aktif status and sorts by effectiveDate desc', async () => {
     execMock.mockResolvedValue([mockRegulation]);
 
     await service.getAllTexts('town-1');
 
     expect(mockModel.find).toHaveBeenCalledWith(
-      { townId: 'town-1' },
-      { title: 1, content: 1, category: 1 },
+      { townId: 'town-1', status: 'aktif' },
+      { title: 1, content: 1, category: 1, effectiveDate: 1, source: 1 },
     );
+    expect(sortMock).toHaveBeenCalledWith({ effectiveDate: -1 });
   });
 
   it('upsertByNotionPageId upserts with the notionPageId as key', async () => {
