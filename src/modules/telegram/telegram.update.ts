@@ -27,7 +27,7 @@ export class TelegramUpdate {
         `/pengumuman — Lihat pengumuman terbaru\n` +
         `/tagihan — Cek tagihan iuran\n` +
         `/tanya [pertanyaan] — Tanya peraturan perumahan\n` +
-        `/daftar [nomor HP] [id perumahan] — Daftarkan akun Telegram kamu`,
+        `/daftar <id-perumahan> — Daftarkan akun Telegram kamu`,
     );
   }
 
@@ -35,7 +35,7 @@ export class TelegramUpdate {
   async onPengumuman(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
     if (!resident) {
-      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-perumahan>');
       return;
     }
 
@@ -53,7 +53,7 @@ export class TelegramUpdate {
   async onTagihan(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
     if (!resident) {
-      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-perumahan>');
       return;
     }
 
@@ -77,7 +77,7 @@ export class TelegramUpdate {
   async onTanya(@Ctx() ctx: Context): Promise<void> {
     const resident = await this.getResidentByChat(ctx);
     if (!resident) {
-      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-perumahan>');
       return;
     }
 
@@ -114,13 +114,16 @@ export class TelegramUpdate {
     const chatId = String(ctx.from.id);
     pendingDaftar.set(chatId, slug);
 
-    await ctx.reply('Tap tombol di bawah untuk bagikan nomor HP kamu.', {
-      reply_markup: {
-        keyboard: [[{ text: '📱 Bagikan Nomor HP', request_contact: true }]],
-        resize_keyboard: true,
-        one_time_keyboard: true,
+    await ctx.reply(
+      'Tap tombol di bawah untuk bagikan nomor HP kamu.\nAtau ketik nomor HP kamu langsung (contoh: 08123456789).',
+      {
+        reply_markup: {
+          keyboard: [[{ text: '📱 Bagikan Nomor HP', request_contact: true }]],
+          resize_keyboard: true,
+          one_time_keyboard: true,
+        },
       },
-    });
+    );
   }
 
   @On('contact')
@@ -166,9 +169,35 @@ export class TelegramUpdate {
     const text = (ctx.message as any)?.text || '';
     if (text.startsWith('/')) return;
 
+    const chatId = String(ctx.from.id);
+    const pendingSlug = pendingDaftar.get(chatId);
+
+    if (pendingSlug) {
+      const phone = text.trim();
+      if (!/^(\+62|62|0)[0-9]{8,13}$/.test(phone)) {
+        await ctx.reply('Format nomor HP tidak valid. Contoh: 08123456789 atau +6281234567890');
+        return;
+      }
+      pendingDaftar.delete(chatId);
+      await ctx.reply('Memproses pendaftaran...', { reply_markup: { remove_keyboard: true } });
+      const town = await this.townsService.findBySlug(pendingSlug);
+      const telegramName = [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ');
+      const { resident, created } = await this.residentsService.linkOrCreateTelegram(
+        chatId,
+        phone,
+        String(town._id),
+        telegramName,
+      );
+      const status = created ? 'Akun baru dibuat dan' : 'Akun';
+      await ctx.reply(
+        `Berhasil! ${status} ${resident.name} dari ${town.name} telah terhubung ke Telegram ✅`,
+      );
+      return;
+    }
+
     const resident = await this.getResidentByChat(ctx);
     if (!resident) {
-      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar [nomor HP]');
+      await ctx.reply('Akun Telegram kamu belum terdaftar. Gunakan /daftar <id-perumahan>');
       return;
     }
 
