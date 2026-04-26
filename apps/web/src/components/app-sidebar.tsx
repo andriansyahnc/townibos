@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { Building2, LayoutDashboard, LogOut, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -18,6 +18,7 @@ import { clearToken, getUser } from '@/lib/api';
 
 const navItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Penghuni', url: '/residents', icon: UserRound },
   { title: 'Perumahan', url: '/towns', icon: Building2, superadminOnly: true },
   { title: 'Pengguna', url: '/users', icon: Users, superadminOnly: true },
 ];

@@ -80,6 +80,28 @@ export type AdminUser = {
   townId?: string;
 };
 
+// Residents
+export type Resident = {
+  _id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  role: 'owner' | 'tenant';
+  isActive: boolean;
+  townId: string;
+  telegramChatId?: string;
+  unitId?: { _id: string; block?: string; floor?: string; number?: string } | null;
+};
+
+export const residents = {
+  list: (townId?: string) =>
+    request<Resident[]>(`/residents${townId ? `?townId=${townId}` : ''}`),
+  update: (id: string, dto: Partial<Resident>) =>
+    request<Resident>(`/residents/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  remove: (id: string) =>
+    request<{ deleted: boolean }>(`/residents/${id}`, { method: 'DELETE' }),
+};
+
 export const users = {
   list: () => request<AdminUser[]>('/auth/admins'),
   create: (dto: { username: string; password: string; role: string; townId?: string }) =>
