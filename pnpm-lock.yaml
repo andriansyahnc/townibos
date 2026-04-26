@@ -86,6 +86,9 @@ importers:
       telegraf:
         specifier: ^4.16.3
         version: 4.16.3
+      voyageai:
+        specifier: ^0.2.1
+        version: 0.2.1
     devDependencies:
       '@nestjs/cli':
         specifier: ^11.0.21
@@ -5152,6 +5155,18 @@ packages:
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
+
+  voyageai@0.2.1:
+    resolution: {integrity: sha512-ym7Dk6p8Si6lR9wDh58EzxwT0ziD/pqXjzzzceOSySO3Ic3uosHZLOTAsb3Gq+1OaKdEMnni/p8TohKUNvLTkg==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@huggingface/transformers': ^3.8.0
+      onnxruntime-node: '>=1.17.0'
+    peerDependenciesMeta:
+      '@huggingface/transformers':
+        optional: true
+      onnxruntime-node:
+        optional: true
 
   walker@1.0.8:
     resolution: {integrity: sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==}
@@ -10791,6 +10806,12 @@ snapshots:
   validator@13.15.35: {}
 
   vary@1.1.2: {}
+
+  voyageai@0.2.1:
+    dependencies:
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
 
   walker@1.0.8:
     dependencies:

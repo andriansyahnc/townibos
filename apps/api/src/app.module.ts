@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { TelegrafModule } from 'nestjs-telegraf';
 import configuration from './config/configuration';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
+import { FaqCacheModule } from './modules/faq-cache/faq-cache.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DomainTemplatesModule } from './modules/domain-templates/domain-templates.module';
 import { GuardiansModule } from './modules/guardians/guardians.module';
@@ -53,6 +54,7 @@ const telegramEnabled = !!telegramToken && !telegramToken.startsWith('your-');
     PaymentsModule,
     RegulationsModule,
     RagModule,
+    FaqCacheModule,
     NotionModule,
     ScoresModule,
     GuardiansModule,

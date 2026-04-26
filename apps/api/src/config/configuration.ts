@@ -18,6 +18,12 @@ export default () => ({
   encryption: {
     key: process.env.ENCRYPTION_KEY,
   },
+  voyage: {
+    apiKey: process.env.VOYAGE_API_KEY,
+  },
+  faqCache: {
+    similarityThreshold: parseFloat(process.env.FAQ_CACHE_SIMILARITY_THRESHOLD ?? '0.92'),
+  },
   adminApiKey: process.env.ADMIN_API_KEY,
   corsOrigins: process.env.CORS_ORIGINS || '*',
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3001',

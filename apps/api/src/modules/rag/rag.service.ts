@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FaqCacheService } from '../faq-cache/faq-cache.service';
 import { RegulationsService } from '../regulations/regulations.service';
 import { TownsService } from '../towns/towns.service';
 
@@ -14,6 +15,7 @@ export class RagService implements OnModuleInit {
     private config: ConfigService,
     private regulationsService: RegulationsService,
     private townsService: TownsService,
+    private faqCacheService: FaqCacheService,
   ) {}
 
   onModuleInit() {
@@ -51,6 +53,9 @@ export class RagService implements OnModuleInit {
       return `Belum ada ${docLabel} yang terdaftar untuk organisasi ini.`;
     }
 
+    const cached = await this.faqCacheService.findSimilar(question, townId);
+    if (cached) return cached.answer;
+
     const systemPrompt = `Kamu adalah ${ragRole}.
 Jawab pertanyaan berdasarkan ${docLabel} di bawah ini saja.
 Jika informasi tidak ada dalam ${docLabel}, katakan dengan jujur bahwa kamu tidak tahu.
@@ -74,6 +79,10 @@ ${context}`;
     });
 
     const block = response.content[0];
-    return block.type === 'text' ? block.text : '';
+    const answer = block.type === 'text' ? block.text : '';
+
+    this.faqCacheService.save(question, answer, townId).catch(() => {});
+
+    return answer;
   }
 }

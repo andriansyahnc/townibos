@@ -63,7 +63,8 @@ AppModule
  ├── AnnouncementsModule Pengumuman; broadcastTelegram flag for future push
  ├── PaymentsModule      Tagihan iuran/listrik/air/parkir; period is 'YYYY-MM' string
  ├── RegulationsModule   Peraturan tata tertib stored in MongoDB; source docs for RAG
- ├── RagModule           Claude-backed Q&A; depends on RegulationsModule
+ ├── RagModule           Claude-backed Q&A; depends on RegulationsModule + FaqCacheModule
+ ├── FaqCacheModule      Semantic FAQ cache; stores Q&A pairs with Voyage AI embeddings; checked before Claude call
  ├── NotionModule        Syncs Notion database → Regulation collection; triggers RAG refresh
  └── TelegramModule      Bot update handler; depends on Rag, Residents, Announcements, Payments
 ```
@@ -71,6 +72,8 @@ AppModule
 ### RAG pipeline
 
 `RagService` (not a vector DB) loads all `Regulation` documents from MongoDB into a single in-memory string on first query, then passes it as the system prompt to `claude-sonnet-4-6` with `cache_control: { type: 'ephemeral' }` for prompt caching. Call `POST /api/v1/rag/refresh` after any regulation changes to invalidate the in-memory cache.
+
+Before calling Claude, `RagService.query()` checks `FaqCacheService.findSimilar()` — if a semantically similar question was answered before (cosine similarity > `FAQ_CACHE_SIMILARITY_THRESHOLD`, default 0.92), the cached answer is returned directly. On cache miss, Claude's answer is saved to `FaqCache` (fire-and-forget via Voyage AI embeddings). Set `VOYAGE_API_KEY` to enable; omitting it silently disables the cache without errors.
 
 ### Notion sync
 

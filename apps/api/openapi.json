@@ -1294,6 +1294,109 @@
         ]
       }
     },
+    "/api/v1/faq-cache": {
+      "get": {
+        "operationId": "FaqCacheController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List cached FAQ entries",
+        "tags": [
+          "faq-cache"
+        ]
+      }
+    },
+    "/api/v1/faq-cache/{id}": {
+      "get": {
+        "operationId": "FaqCacheController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a cached FAQ entry",
+        "tags": [
+          "faq-cache"
+        ]
+      },
+      "patch": {
+        "operationId": "FaqCacheController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Edit the answer of a cached FAQ entry",
+        "tags": [
+          "faq-cache"
+        ]
+      },
+      "delete": {
+        "operationId": "FaqCacheController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a cached FAQ entry",
+        "tags": [
+          "faq-cache"
+        ]
+      }
+    },
     "/api/v1/notion/sync/me": {
       "post": {
         "operationId": "NotionController_syncMine",

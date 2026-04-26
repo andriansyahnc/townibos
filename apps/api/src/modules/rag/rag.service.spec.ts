@@ -1,6 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import { FaqCacheService } from '../faq-cache/faq-cache.service';
 import { RegulationsService } from '../regulations/regulations.service';
+import { TownsService } from '../towns/towns.service';
 import { RagService } from './rag.service';
 
 const mockRegulations = [
@@ -22,6 +24,7 @@ jest.mock('@anthropic-ai/sdk', () => ({
 describe('RagService', () => {
   let service: RagService;
   let regulationsService: jest.Mocked<RegulationsService>;
+  let faqCacheService: jest.Mocked<FaqCacheService>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -35,14 +38,28 @@ describe('RagService', () => {
           provide: RegulationsService,
           useValue: { getAllTexts: jest.fn().mockResolvedValue(mockRegulations) },
         },
+        {
+          provide: TownsService,
+          useValue: { findOne: jest.fn().mockResolvedValue({ domainTemplateId: null }) },
+        },
+        {
+          provide: FaqCacheService,
+          useValue: {
+            findSimilar: jest.fn().mockResolvedValue(null),
+            save: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 
     service = module.get(RagService);
     regulationsService = module.get(RegulationsService);
+    faqCacheService = module.get(FaqCacheService);
     service.onModuleInit();
     jest.clearAllMocks();
     regulationsService.getAllTexts = jest.fn().mockResolvedValue(mockRegulations);
+    faqCacheService.findSimilar = jest.fn().mockResolvedValue(null);
+    faqCacheService.save = jest.fn().mockResolvedValue(undefined);
   });
 
   describe('refreshContext', () => {
@@ -91,6 +108,44 @@ describe('RagService', () => {
       await service.query('Q2', 'town-1');
 
       expect(regulationsService.getAllTexts).not.toHaveBeenCalled();
+    });
+
+    it('returns cached answer without calling Claude when cache hit found', async () => {
+      await service.refreshContext('town-1');
+      faqCacheService.findSimilar = jest
+        .fn()
+        .mockResolvedValue({ answer: 'Jawaban dari cache' });
+
+      const result = await service.query('Berapa slot parkir?', 'town-1');
+
+      expect(result).toBe('Jawaban dari cache');
+      expect(mockAnthropicCreate).not.toHaveBeenCalled();
+    });
+
+    it('calls Claude and saves to cache when no cache hit', async () => {
+      await service.refreshContext('town-1');
+      mockAnthropicCreate.mockClear();
+      faqCacheService.findSimilar = jest.fn().mockResolvedValue(null);
+
+      await service.query('Berapa slot parkir?', 'town-1');
+
+      expect(mockAnthropicCreate).toHaveBeenCalledTimes(1);
+      // allow microtask for fire-and-forget
+      await Promise.resolve();
+      expect(faqCacheService.save).toHaveBeenCalledWith(
+        'Berapa slot parkir?',
+        expect.any(String),
+        'town-1',
+      );
+    });
+
+    it('does not throw if cache save fails', async () => {
+      await service.refreshContext('town-1');
+      mockAnthropicCreate.mockClear();
+      faqCacheService.findSimilar = jest.fn().mockResolvedValue(null);
+      faqCacheService.save = jest.fn().mockRejectedValue(new Error('Voyage down'));
+
+      await expect(service.query('Berapa slot parkir?', 'town-1')).resolves.toBeDefined();
     });
 
     it('maintains separate context per town', async () => {

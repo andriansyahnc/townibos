@@ -9,6 +9,7 @@ Residential complex (perumahan) management system — CRM for managing residents
 - **Announcements** — Pengumuman with optional Telegram broadcast flag
 - **Telegram bot** — Residents link their account via phone number, then check bills and ask questions directly in Telegram
 - **RAG chatbot** — Answers questions about peraturan perumahan grounded in documents stored in the database
+- **Semantic FAQ cache** — Previously answered questions are cached with vector embeddings; similar questions return instantly without calling Claude
 - **REST API** — Full CRUD for all resources under `/api/v1`
 
 ## Tech Stack
@@ -20,6 +21,7 @@ Residential complex (perumahan) management system — CRM for managing residents
 | Auth | JWT (passport-jwt) |
 | Telegram bot | nestjs-telegraf + Telegraf v4 |
 | AI / RAG | Anthropic Claude (`claude-sonnet-4-6`) |
+| Embeddings | Voyage AI (`voyage-3-lite`) |
 | Language | TypeScript |
 
 ## Quick Start
@@ -104,6 +106,16 @@ Regulation `category` values: `tata_tertib`, `iuran`, `fasilitas`, `parkir`, `he
 
 > Call `/rag/refresh` after adding or updating any regulation.
 
+### FAQ Cache (Admin)
+| Method | Path | Description |
+|---|---|---|
+| GET | `/faq-cache` | List all cached Q&A entries |
+| GET | `/faq-cache/:id` | Get single entry |
+| PATCH | `/faq-cache/:id` | Edit cached answer |
+| DELETE | `/faq-cache/:id` | Remove entry (forces Claude on next similar question) |
+
+Requires JWT. Entries are auto-created when Claude answers a question. Requires `VOYAGE_API_KEY` in `.env`.
+
 ## Telegram Bot Commands
 
 Residents interact with the bot using these commands:
@@ -141,5 +153,6 @@ src/
     ├── payments/         Tagihan
     ├── regulations/      Peraturan (RAG source docs)
     ├── rag/              Claude-powered Q&A
+    ├── faq-cache/        Semantic FAQ cache (embeddings + cosine similarity)
     └── telegram/         Bot update handlers
 ```
